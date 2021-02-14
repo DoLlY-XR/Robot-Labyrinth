@@ -1,23 +1,34 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class AvatorController : MonoBehaviour
 {
-    public Transform upperBodyBone;
+    public Transform spineTemp;
+    public Transform Spine;
     public Transform weaponBone;
-    public float speed = 6.0F;          //歩行速度
-    public float jumpSpeed = 8.0F;      //ジャンプ力
-    public float gravity = 20.0F;       //重力の大きさ
-    public float rotateSpeed = 3.0F;    //回転速度
+    public float speed = 6.0F;                      //歩行速度
+    public float jumpSpeed = 8.0F;                  //ジャンプ力
+    public float gravity = 20.0F;                   //重力の大きさ
+    public float rotateSpeed = 3.0F;                //回転速度
+    public float postureRotateLimit = 30f;          //銃撃姿勢で回転出来る限度
 
-    private CharacterController controller;         //アバターのコントローラー
-    private Animator animator;                      //アバターのアニメーター
-    private Vector3 moveDirection = Vector3.zero;   //アバターの移動量
-    private float h, v;                             //矢印キー
+    [NonSerialized]
+    public Animator animator;                       //ロボットのアニメーター
+    [NonSerialized]
+    public float tempRotateY = 0.0f;                //ShootingControlスクリプトで使うrotateY
+    [NonSerialized]
+    public Vector2 stickL;                          //左手のアナログスティック
+    [NonSerialized]
+    public Vector2 stickR;                          //右手のアナログスティック
+    [NonSerialized]
+    public bool flag = true;                        //ShootingControlスクリプトで使うフラグ
+
+    private CharacterController controller;         //ロボットのコントローラー
+    private Vector3 moveDirection = Vector3.zero;   //ロボットの移動量
     private bool combatPosture = false;             //戦闘態勢の切替フラグ
-    private float x = 0.0f;
-    private float y = 0.0f;
+    public float rotateY = 0.0f;
 
     // Start is called before the first frame update
     void Start()
@@ -32,15 +43,15 @@ public class AvatorController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //h = Input.GetAxis("Horizontal");    //左右矢印キーの値(-1.0~1.0)
-        //v = Input.GetAxis("Vertical");      //上下矢印キーの値(-1.0~1.0)
+        stickL = OVRInput.Get(OVRInput.RawAxis2D.LThumbstick);      // 左手のアナログスティックの向きを取得
+        stickR = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick);      // 右手のアナログスティックの向きを取得
 
         //アバターの接地判定
         if (controller.isGrounded)
         {
             SwitchingCombatPosture();
 
-            if (!animator.GetBool("is_setting"))    //戦闘アニメーションから通常アニメーションへの遷移時
+            if (!animator.GetBool("is_setting"))        //戦闘アニメーションから通常アニメーションへの遷移時
             {
                 Normal();
             }
@@ -57,45 +68,39 @@ public class AvatorController : MonoBehaviour
 
     protected virtual void LateUpdate()
     {
-        if (Input.GetKey(KeyCode.Alpha3))
+        if (animator.GetBool("is_setting"))    //戦闘態勢の時
         {
-            x += Input.GetAxis("Horizontal");
-            y += Input.GetAxis("Vertical");
+            rotateY += stickR.y;
+            tempRotateY = rotateY;
 
-            if (x > 30.0f)
+            if (rotateY > postureRotateLimit)
             {
-                x = 30.0f;
+                rotateY = postureRotateLimit;
+                flag = false;
             }
-            else if (x < -30.0f)
+            else if (rotateY < -postureRotateLimit)
             {
-                x = -30.0f;
+                rotateY = -postureRotateLimit;
+                flag = false;
             }
-            if (y > 15.0f)
+            else
             {
-                y = 15.0f;
-            }
-            else if (y < -15.0f)
-            {
-                y = -15.0f;
+                flag = true;
             }
 
-            upperBodyBone.RotateAround(upperBodyBone.position, upperBodyBone.right, x * 3.0f);
-            upperBodyBone.RotateAround(upperBodyBone.position, upperBodyBone.forward, y * 3.0f);
-
-            weaponBone.RotateAround(upperBodyBone.position, upperBodyBone.right, x * 3.0f);
-            weaponBone.RotateAround(upperBodyBone.position, upperBodyBone.forward, y * 3.0f);
+            Spine.RotateAround(spineTemp.position, this.transform.right, -rotateY);
+            weaponBone.RotateAround(spineTemp.position, this.transform.right, -rotateY);
         }
         else
         {
-            x = 0.0f;
-            y = 0.0f;
+            rotateY = 0f;
         }
     }
 
     //通常態勢か戦闘態勢か
     void SwitchingCombatPosture()
     {
-        if (Input.GetKey(KeyCode.Alpha1))   //戦闘態勢への切替
+        if (OVRInput.Get(OVRInput.RawButton.LIndexTrigger))   //戦闘態勢への切替    Oculus Touchの左人差し指トリガーを押し込んだ場合
         {
             combatPosture = true;
 
@@ -104,7 +109,7 @@ public class AvatorController : MonoBehaviour
             animator.SetBool("is_running", false);
             animator.SetBool("is_jumping", false);
         }
-        else                                //通常態勢への切替
+        else                                //通常態勢への切替  Oculus Touchの左人差し指トリガーを押し込んでいない場合
         {
             combatPosture = false;
 
@@ -122,30 +127,24 @@ public class AvatorController : MonoBehaviour
     //通常態勢の挙動
     void Normal()
     {
-        h = 0.0f;
-        v = Input.GetAxis("Vertical");      //上下矢印キーの値(-1.0~1.0)
-
-        if (v > 0.1f && !combatPosture)    //↑入力の検知かつ通常態勢の時
+        if (stickL.y > 0.1f && !combatPosture)    //↑入力の検知かつ通常態勢の時
         {
-            h = Input.GetAxis("Horizontal");    //左右矢印キーの値(-1.0~1.0)
-            
             //走るアニメーションへ遷移
             animator.SetBool("is_running", true);
         }
         else                        //↑入力が検知されない時
         {
             //後退させずに通常アニメーションへ遷移
-            v = 0.0f;
+            stickL.y = 0f;
             animator.SetBool("is_running", false);
         }
 
         //移動量の更新（通常アニメーション）
-        gameObject.transform.Rotate(new Vector3(0, rotateSpeed * h, 0));
-        moveDirection = speed * v * gameObject.transform.forward;
-        moveDirection *= speed;
+        gameObject.transform.Rotate(new Vector3(0, rotateSpeed * stickL.x, 0));
+        moveDirection = speed * stickL.y * gameObject.transform.forward;
 
-        //ジャンプボタンが押された時
-        if (Input.GetButton("Jump"))
+        //Oculus Touchの左中指グリップを押し込んだ場合
+        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
         {
             //ジャンプアニメーションへ遷移
             animator.SetBool("is_jumping", true);
@@ -156,10 +155,7 @@ public class AvatorController : MonoBehaviour
     //戦闘態勢の挙動
     void Combat()
     {
-        h = 0.0f;
-        v = 0.0f;
-
-        if (Input.GetKey(KeyCode.Space))
+        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger))     //Oculus Touchの右人差し指トリガーを押し込んだ場合
         {
             //射撃遷移変数の初期化
             animator.SetBool("is_shooting", true);
@@ -170,19 +166,19 @@ public class AvatorController : MonoBehaviour
             animator.SetBool("is_shooting", false);
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha0))
+        if (OVRInput.GetDown(OVRInput.RawButton.B))                 //Oculus TouchのBボタンを押した場合
         {
             //リロード遷移変数の初期化
             animator.SetBool("is_reroading", true);
         }
 
-        if (Input.GetAxis("Vertical") > 0.1f || Input.GetAxis("Vertical") < -0.1f
-            || Input.GetAxis("Horizontal") > 0.1f || Input.GetAxis("Horizontal") < -0.1f)
+        if (stickL.x > 0.1f || stickL.x < -0.1f
+            || stickL.y > 0.1f || stickL.y < -0.1f)
         {
             //移動遷移変数の初期化
             animator.SetBool("is_moving", true);
 
-            if (Input.GetAxis("Vertical") > 0.1f && combatPosture)     //↑入力の検知かつ戦闘態勢の時
+            if (stickL.y > 0.1f && combatPosture)     //↑入力の検知かつ戦闘態勢の時
             {
                 //移動遷移変数の初期化
                 animator.SetBool("walk_back", false);
@@ -198,7 +194,7 @@ public class AvatorController : MonoBehaviour
                 animator.SetBool("walk_front", false);
             }
 
-            if (Input.GetAxis("Vertical") < -0.1f && combatPosture)    //↓入力の検知かつ戦闘態勢の時
+            if (stickL.y < -0.1f && combatPosture)    //↓入力の検知かつ戦闘態勢の時
             {
                 //移動遷移変数の初期化
                 animator.SetBool("walk_front", false);
@@ -215,10 +211,9 @@ public class AvatorController : MonoBehaviour
             }
 
             //左右移動アニメーション遷移の定義
-            if (Input.GetAxis("Vertical") < 0.2f
-                && Input.GetAxis("Vertical") > -0.2f)
+            if (stickL.y < 0.2f && stickL.y > -0.2f)
             {
-                if (Input.GetAxis("Horizontal") > 0.1f && combatPosture)     //→入力の検知かつ戦闘態勢の時
+                if (stickL.x > 0.1f && combatPosture)     //→入力の検知かつ戦闘態勢の時
                 {
                     //移動遷移変数の初期化
                     animator.SetBool("walk_front", false);
@@ -234,7 +229,7 @@ public class AvatorController : MonoBehaviour
                     animator.SetBool("walk_right", false);
                 }
 
-                if (Input.GetAxis("Horizontal") < -0.1f && combatPosture)    //←入力の検知かつ戦闘態勢の時
+                if (stickL.x < -0.1f && combatPosture)    //←入力の検知かつ戦闘態勢の時
                 {
                     //移動遷移変数の初期化
                     animator.SetBool("walk_front", false);
@@ -260,48 +255,10 @@ public class AvatorController : MonoBehaviour
             animator.SetBool("walk_right", false);
             animator.SetBool("walk_left", false);
         }
-        
 
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("WalkFront_Shoot_AR")
-            && Input.GetAxis("Vertical") > 0.0f)
-        {
-            h = Input.GetAxis("Horizontal");    //左右矢印キーの値(-1.0~1.0)
-            v = Input.GetAxis("Vertical");      //上矢印キーの値(0.0~1.0)
-        }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("WalkBack_Shoot_AR")
-            && Input.GetAxis("Vertical") < 0.0f)
-        {
-            h = Input.GetAxis("Horizontal");    //左右矢印キーの値(-1.0~1.0)
-            v = Input.GetAxis("Vertical");      //下矢印キーの値(-1.0~0.0)
-        }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("WalkRight_Shoot_AR")
-            && Input.GetAxis("Horizontal") > 0.0f)
-        {
-            h = Input.GetAxis("Horizontal");    //右矢印キーの値(0.0~1.0)
-            v = Input.GetAxis("Vertical");      //上下矢印キーの値(-1.0~1.0)
-        }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("WalkLeft_Shoot_AR")
-            && Input.GetAxis("Horizontal") < 0.0f)
-        {
-            h = Input.GetAxis("Horizontal");    //左矢印キーの値(-1.0~0.0)
-            v = Input.GetAxis("Vertical");      //上下矢印キーの値(-1.0~1.0)
-        }
-
-        if (Input.GetKey(KeyCode.Alpha2))
-        {
-            v = 0.0f;       //エイム移動中は移動させない
-
-            //移動量の更新（通常アニメーション）
-            gameObject.transform.Rotate(new Vector3(0, rotateSpeed * 0.5f * h, 0));
-            moveDirection = speed * v * gameObject.transform.forward;
-        }
-        else
-        {
-            //移動量の更新（戦闘アニメーション）
-            moveDirection = new Vector3(h, 0, v);
-            moveDirection = transform.TransformDirection(moveDirection);
-        }
-        
-        moveDirection *= speed;
+        //移動量の更新（戦闘アニメーション）
+        gameObject.transform.Rotate(new Vector3(0, rotateSpeed * 0.5f * stickR.x, 0));
+        moveDirection = new Vector3(stickL.x, 0, stickL.y);
+        moveDirection = speed * transform.TransformDirection(moveDirection) * 0.5f;
     }
 }

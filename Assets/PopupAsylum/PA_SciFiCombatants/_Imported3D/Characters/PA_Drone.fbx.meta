@@ -114,7 +114,12 @@ ModelImporter:
   - first:
       95: 9500000
     second: //RootNode
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PA_DroneMat
+    second: {fileID: 2100000, guid: 9468cfbf407387c4d8fef60308588e42, type: 2}
   materials:
     materialImportMode: 1
     materialName: 1
@@ -212,7 +217,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -228,7 +233,7 @@ ModelImporter:
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+      additiveReferencePoseFrame: 1
     - serializedVersion: 16
       name: PA_DroneSlowFromBackwards_Clip
       takeName: Take 001
