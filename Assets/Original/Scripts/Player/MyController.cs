@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AvatorController : MonoBehaviour
+public class MyController : MonoBehaviour
 {
-    public Transform spineTemp;
-    public Transform Spine;
-    public Transform weaponBone;
+    public Transform neckTemp;                      //首のデフォルトの位置
+    public Transform Neck;                          //首の位置
+    public Transform spineTemp;                     //脊椎のデフォルトの位置
+    public Transform Spine;                         //脊椎の位置
+    public Transform weaponBone;                    //武器の位置
     public float speed = 6.0F;                      //歩行速度
     public float jumpSpeed = 8.0F;                  //ジャンプ力
     public float gravity = 20.0F;                   //重力の大きさ
@@ -15,29 +17,32 @@ public class AvatorController : MonoBehaviour
     public float postureRotateLimit = 30f;          //銃撃姿勢で回転出来る限度
 
     [NonSerialized]
-    public Animator animator;                       //ロボットのアニメーター
+    public Animator animator;                       //プレイヤーのアニメーター
     [NonSerialized]
     public float tempRotateY = 0.0f;                //ShootingControlスクリプトで使うrotateY
+    [NonSerialized]
+    public float rotateY = 0.0f;                    //y軸回転量
     [NonSerialized]
     public Vector2 stickL;                          //左手のアナログスティック
     [NonSerialized]
     public Vector2 stickR;                          //右手のアナログスティック
     [NonSerialized]
-    public bool flag = true;                        //ShootingControlスクリプトで使うフラグ
+    public bool flagY = true;                       //他のスクリプトで使うフラグY
 
-    private CharacterController controller;         //ロボットのコントローラー
-    private Vector3 moveDirection = Vector3.zero;   //ロボットの移動量
+    private CharacterController controller;         //プレイヤーのコントローラー
+    private MyStatus myStatus;                      //プレイヤーのステータス管理スクリプト
+    private Vector3 moveDirection = Vector3.zero;   //プレイヤーの移動量
     private bool combatPosture = false;             //戦闘態勢の切替フラグ
-    public float rotateY = 0.0f;
 
     // Start is called before the first frame update
     void Start()
     {
-        //アバターのCharacterControllerコンポーネントを取得
+        //プレイヤーのCharacterControllerコンポーネントを取得
         controller = GetComponent<CharacterController>();
-
-        //アバターのAnimatorコンポーネントを取得
+        //プレイヤーのAnimatorコンポーネントを取得
         animator = GetComponent<Animator>();
+        //プレイヤーのMyStatusコンポーネントを取得
+        myStatus = GetComponent<MyStatus>();
     }
 
     // Update is called once per frame
@@ -46,54 +51,54 @@ public class AvatorController : MonoBehaviour
         stickL = OVRInput.Get(OVRInput.RawAxis2D.LThumbstick);      // 左手のアナログスティックの向きを取得
         stickR = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick);      // 右手のアナログスティックの向きを取得
 
-        //アバターの接地判定
+        //プレイヤーの接地判定
         if (controller.isGrounded)
         {
             SwitchingCombatPosture();
 
-            if (!animator.GetBool("is_setting"))        //戦闘アニメーションから通常アニメーションへの遷移時
+            if (!animator.GetBool("is_setting"))        //非戦闘アニメーション時
             {
                 Normal();
             }
-            else if (animator.GetBool("is_setting"))    //通常アニメーションから戦闘アニメーションへの遷移時
+            else if (animator.GetBool("is_setting"))    //戦闘アニメーション時
             {
                 Combat();
             }
         }
 
-        //アバターの座標移動
+        //プレイヤーの座標移動
         moveDirection.y -= gravity * Time.deltaTime;
         controller.Move(moveDirection * Time.deltaTime);
     }
 
     protected virtual void LateUpdate()
     {
+        rotateY += stickR.y;
+        tempRotateY = rotateY;
+
+        if (rotateY > postureRotateLimit)
+        {
+            rotateY = postureRotateLimit;
+            flagY = false;
+        }
+        else if (rotateY < -postureRotateLimit)
+        {
+            rotateY = -postureRotateLimit;
+            flagY = false;
+        }
+        else
+        {
+            flagY = true;
+        }
+
         if (animator.GetBool("is_setting"))    //戦闘態勢の時
         {
-            rotateY += stickR.y;
-            tempRotateY = rotateY;
-
-            if (rotateY > postureRotateLimit)
-            {
-                rotateY = postureRotateLimit;
-                flag = false;
-            }
-            else if (rotateY < -postureRotateLimit)
-            {
-                rotateY = -postureRotateLimit;
-                flag = false;
-            }
-            else
-            {
-                flag = true;
-            }
-
             Spine.RotateAround(spineTemp.position, this.transform.right, -rotateY);
             weaponBone.RotateAround(spineTemp.position, this.transform.right, -rotateY);
         }
         else
         {
-            rotateY = 0f;
+            Neck.transform.Rotate(new Vector3(0, 0, -rotateY));
         }
     }
 
@@ -106,7 +111,7 @@ public class AvatorController : MonoBehaviour
 
             //遷移変数の初期化
             animator.SetBool("is_setting", true);
-            animator.SetBool("is_running", false);
+            animator.SetFloat("speed", 0f);
             animator.SetBool("is_jumping", false);
         }
         else                                //通常態勢への切替  Oculus Touchの左人差し指トリガーを押し込んでいない場合
@@ -127,16 +132,20 @@ public class AvatorController : MonoBehaviour
     //通常態勢の挙動
     void Normal()
     {
-        if (stickL.y > 0.1f && !combatPosture)    //↑入力の検知かつ通常態勢の時
+        if (stickL.y > 0.1f && !combatPosture)          //↑入力の検知かつ通常態勢の時
         {
-            //走るアニメーションへ遷移
-            animator.SetBool("is_running", true);
+            //前方向に走るアニメーションへ遷移
+            animator.SetFloat("speed", 2f);
         }
-        else                        //↑入力が検知されない時
+        else if (stickL.y < -0.1f && !combatPosture)     //↓入力の検知かつ通常態勢の時
+        {
+            //前方向に走るアニメーションへ遷移
+            animator.SetFloat("speed", -2f);
+        }
+        else                                            //上下入力が検知されなくて通常態勢の時
         {
             //後退させずに通常アニメーションへ遷移
-            stickL.y = 0f;
-            animator.SetBool("is_running", false);
+            animator.SetFloat("speed", 0f);
         }
 
         //移動量の更新（通常アニメーション）
@@ -260,5 +269,11 @@ public class AvatorController : MonoBehaviour
         gameObject.transform.Rotate(new Vector3(0, rotateSpeed * 0.5f * stickR.x, 0));
         moveDirection = new Vector3(stickL.x, 0, stickL.y);
         moveDirection = speed * transform.TransformDirection(moveDirection) * 0.5f;
+    }
+
+    //ダメージ計算
+    public void TakeDamage(int attackedPower)
+    {
+        myStatus.SetDamage(attackedPower);
     }
 }

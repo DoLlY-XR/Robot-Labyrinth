@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 2328256551623408676}
   - component: {fileID: 2328256551623408675}
   - component: {fileID: 2328256551623408674}
+  - component: {fileID: 7261594805800992203}
   m_Layer: 0
-  m_Name: LaserBeam
+  m_Name: LaserBeam2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4710,7 +4711,7 @@ ParticleSystemRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 87965f8a6598d0e4391b6b0d0fb337e8, type: 2}
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 87965f8a6598d0e4391b6b0d0fb337e8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4754,3 +4755,16 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!114 &7261594805800992203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2328256551623408673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0f6431172c0c2849b35c62683425be9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitTag: 0
