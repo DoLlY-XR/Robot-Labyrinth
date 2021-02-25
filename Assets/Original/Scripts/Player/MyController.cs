@@ -11,6 +11,8 @@ public class MyController : MonoBehaviour
     public Transform Spine;                         //脊椎の位置
     public Transform weaponBone;                    //武器の位置
     public float speed = 6.0F;                      //歩行速度
+    public float stepSpeed = 10.0F;                 //ステップ速度
+    public float stepTime = 3.0F;                   //ステップ時間
     public float jumpSpeed = 8.0F;                  //ジャンプ力
     public float gravity = 20.0F;                   //重力の大きさ
     public float rotateSpeed = 3.0F;                //回転速度
@@ -32,7 +34,10 @@ public class MyController : MonoBehaviour
     private CharacterController controller;         //プレイヤーのコントローラー
     private MyStatus myStatus;                      //プレイヤーのステータス管理スクリプト
     private Vector3 moveDirection = Vector3.zero;   //プレイヤーの移動量
+    private float runSpeed;                         //現在の歩行速度
     private bool combatPosture = false;             //戦闘態勢の切替フラグ
+    private bool isSteping = false;                 //ステップフラグ
+    private float dTime = 0.0f;
 
     // Start is called before the first frame update
     void Start()
@@ -43,6 +48,8 @@ public class MyController : MonoBehaviour
         animator = GetComponent<Animator>();
         //プレイヤーのMyStatusコンポーネントを取得
         myStatus = GetComponent<MyStatus>();
+        //デフォルトの歩行速度を初期化
+        runSpeed = speed;
     }
 
     // Update is called once per frame
@@ -100,6 +107,13 @@ public class MyController : MonoBehaviour
         {
             Neck.transform.Rotate(new Vector3(0, 0, -rotateY));
         }
+
+        //Oculus Touchの右中指グリップを押し込んだ場合
+        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
+        {
+            //上半身のY軸角度をリセット
+            rotateY = 0f;
+        }
     }
 
     //通常態勢か戦闘態勢か
@@ -150,10 +164,10 @@ public class MyController : MonoBehaviour
 
         //移動量の更新（通常アニメーション）
         gameObject.transform.Rotate(new Vector3(0, rotateSpeed * stickL.x, 0));
-        moveDirection = speed * stickL.y * gameObject.transform.forward;
+        moveDirection = runSpeed * stickL.y * gameObject.transform.forward;
 
         //Oculus Touchの左中指グリップを押し込んだ場合
-        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
+        if (OVRInput.GetDown(OVRInput.RawButton.LHandTrigger))
         {
             //ジャンプアニメーションへ遷移
             animator.SetBool("is_jumping", true);
@@ -265,10 +279,32 @@ public class MyController : MonoBehaviour
             animator.SetBool("walk_left", false);
         }
 
+        //Oculus Touchの左中指グリップを押し込んだ場合
+        if (OVRInput.GetDown(OVRInput.RawButton.LHandTrigger))
+        {
+            //ステップする
+            isSteping = true;
+        }
+
+        if (isSteping == true)
+        {
+            if (stepTime > dTime)
+            {
+                runSpeed = stepSpeed;
+                dTime += Time.deltaTime;
+            }
+            else
+            {
+                runSpeed = speed;
+                dTime = 0.0f;
+                isSteping = false;
+            }
+        }
+
         //移動量の更新（戦闘アニメーション）
         gameObject.transform.Rotate(new Vector3(0, rotateSpeed * 0.5f * stickR.x, 0));
         moveDirection = new Vector3(stickL.x, 0, stickL.y);
-        moveDirection = speed * transform.TransformDirection(moveDirection) * 0.5f;
+        moveDirection = runSpeed * transform.TransformDirection(moveDirection) * 0.5f;
     }
 
     //ダメージ計算

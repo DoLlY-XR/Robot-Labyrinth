@@ -10,6 +10,8 @@ public class FixRobotCamera : MonoBehaviour
     public Transform robotCamera;
 
     private MyController myController;
+    private Vector3 cameraInitialPos;
+    private float cameraInitialAngleX;
     private float rotateY = 0f;
 
     // Start is called before the first frame update
@@ -17,12 +19,15 @@ public class FixRobotCamera : MonoBehaviour
     {
         //アバターのAvatorControllerコンポーネントを取得
         myController = GetComponent<MyController>();
+        //カメラの初期位置・角度を取得
+        cameraInitialPos = robotCamera.localPosition;
+        cameraInitialAngleX = robotCamera.eulerAngles.x;
     }
 
     protected virtual void LateUpdate()
     {
         rotateY = myController.stickR.y;
-
+        
         if (!myController.flagY)
         {
             rotateY = 0f;
@@ -30,5 +35,13 @@ public class FixRobotCamera : MonoBehaviour
 
         robotCameraTemp.RotateAround(myController.neckTemp.position, this.transform.right, -rotateY);
         robotCamera.transform.Rotate(new Vector3(-rotateY, 0, 0));
+
+        //Oculus Touchの右中指グリップを押し込んだ場合
+        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
+        {
+            //カメラの座標・角度をリセット
+            robotCameraTemp.localPosition = cameraInitialPos;
+            robotCamera.eulerAngles = new Vector3(cameraInitialAngleX, this.transform.eulerAngles.y, this.transform.eulerAngles.z);
+        }
     }
 }

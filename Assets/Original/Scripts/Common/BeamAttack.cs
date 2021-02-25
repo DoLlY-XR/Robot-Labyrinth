@@ -34,12 +34,11 @@ public class BeamAttack : MonoBehaviour
     void OnParticleCollision(GameObject obj)
     {
         count++;
-
+        //Debug.Log("obj.tag = " + obj.tag);
         if (count == 1)
         {
             if (obj.tag == hitTag.ToString())
             {
-                Debug.Log("attackPower = " + attackPower);
                 if (hitTag == HitTag.Player)
                 {
                     var Player = obj.transform.root.GetComponent<MyController>();

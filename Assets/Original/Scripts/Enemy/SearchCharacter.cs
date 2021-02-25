@@ -28,7 +28,7 @@ public class SearchCharacter : MonoBehaviour
             //　敵キャラクターが追いかける状態でなければ追いかける設定に変更
             if (enemyStatus == EnemyController.EnemyState.Idle || enemyStatus == EnemyController.EnemyState.Walk)
             {
-                enemy.SetState(EnemyController.EnemyState.Chase, col.transform);
+                enemy.SetState(EnemyController.EnemyState.Chase, col.transform.root);
             }
         }
     }

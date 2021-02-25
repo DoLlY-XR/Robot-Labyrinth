@@ -23,13 +23,13 @@ public class EnemyController : MonoBehaviour
     //怯みダメージ
     public int falteringDamage = 20;
     //敵の攻撃範囲
-    public float attackRange = 5f;
+    public float[] attackRange = {100f, 120f};
     //回転スピード
-    public float rotateSpeed = 45f;
+    public float rotateSpeed = 60f;
     //待ち時間
     public float waitTime = 5f;
     //攻撃後の硬直時間
-    public float freezeTimeAfterAttack = 5f;
+    public float freezeTimeAfterAttack = 1f;
     //敵の状態
     public EnemyState enemyState;
 
@@ -89,7 +89,7 @@ public class EnemyController : MonoBehaviour
             else if (enemyState == EnemyState.Chase)
             {
                 //攻撃する距離だったら戦闘態勢
-                if (distance < attackRange)
+                if (distance < attackRange[0])
                 {
                     //硬直時間を過ぎていたら攻撃状態
                     if (elapsedTime > freezeTimeAfterAttack)
@@ -131,7 +131,7 @@ public class EnemyController : MonoBehaviour
                 }
 
                 //攻撃する距離から離れたら追跡
-                if (distance > attackRange + 10f)
+                if (distance > attackRange[1])
                 {
                     SetState(EnemyState.Chase, playerTransform);
                 }

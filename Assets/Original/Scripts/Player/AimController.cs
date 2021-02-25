@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ScouterController : MonoBehaviour
+public class AimController : MonoBehaviour
 {
     //透明度を変更するキャンバス
     [SerializeField]

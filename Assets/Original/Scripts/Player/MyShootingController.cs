@@ -11,8 +11,10 @@ public class MyShootingController : MonoBehaviour
 
     private MyController myController;
     private MyStatus myStatus;                      //プレイヤーのステータス管理スクリプト
+    private Vector3 muzzleInitialPos;
+    private float muzzleInitialAngleX;
     private float animationTime = 0f;
-    private int dTime1 = 0;
+    private int dTime = 0;
     private float rotateY = 0f;
 
     // Start is called before the first frame update
@@ -22,6 +24,9 @@ public class MyShootingController : MonoBehaviour
         myController = GetComponent<MyController>();
         //プレイヤーのMyStatusコンポーネントを取得
         myStatus = GetComponent<MyStatus>();
+        //銃口の初期位置・角度を取得
+        muzzleInitialPos = muzzle.localPosition;
+        muzzleInitialAngleX = muzzle.eulerAngles.x;
     }
 
     // Update is called once per frame
@@ -29,23 +34,23 @@ public class MyShootingController : MonoBehaviour
     {
         if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_SingleShot_AR"))
         {
-            dTime1++;
+            dTime++;
         }
         else
         {
-            dTime1 = 0;
+            dTime = 0;
         }
 
         if (myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime - animationTime > 1f)
         {
-            dTime1 = 0;
+            dTime = 0;
             animationTime = myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime;
         }
 
-        if (dTime1 == 1)            //戦闘態勢　Oculus Touchの右人差し指トリガーを押し込んだ場合
+        if (dTime == 1)            //戦闘態勢　Oculus Touchの右人差し指トリガーを押し込んだ場合
         {
             animationTime = myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime;
-
+            
             var particleInstance = Instantiate<ParticleSystem>
                     (particlePrefab, muzzle.position, muzzle.rotation);
             
@@ -67,5 +72,13 @@ public class MyShootingController : MonoBehaviour
         }
 
         muzzle.RotateAround(myController.spineTemp.position, this.transform.right, -rotateY);
+
+        //Oculus Touchの右中指グリップを押し込んだ場合
+        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
+        {
+            //銃口の座標・角度をリセット
+            muzzle.localPosition = muzzleInitialPos;
+            muzzle.eulerAngles = new Vector3(muzzleInitialAngleX, this.transform.eulerAngles.y, this.transform.eulerAngles.z);
+        }
     }
 }

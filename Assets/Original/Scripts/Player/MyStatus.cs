@@ -18,17 +18,22 @@ public class MyStatus : MonoBehaviour
     private int defensePower = 10;
     //HPゲージ
     [SerializeField]
+    private Image hPIcon;
+    //HPアイコンのスプライト
+    [SerializeField]
+    private Sprite[] hPIconSprite;
+    //HPゲージ
+    [SerializeField]
     private Image hPGauge;
-    //HPゲージの最大割合
+    //HPゲージのスプライト
     [SerializeField]
-    private float maxHPGaugeAmount = 0.85f;
-    //HPゲージの割合
-    [SerializeField]
-    private float hPGaugeAmount;
+    private Sprite[] hPGaugeSprite;
     //次にHPを減らすまでの時間
     [SerializeField]
     private float nextCountTime = 0f;
 
+    private float maxHPGaugeAmount = 0.85f; //HPゲージの最大割合
+    private float hPGaugeAmount;            //HPゲージの割合
     private float countTime = 0f;           //HPを一度減らしてからの経過時間
     private int damage = 0;                 //現在のダメージ量
     private MyController myController;      //プレイヤーの制御スクリプト
@@ -110,5 +115,16 @@ public class MyStatus : MonoBehaviour
     {
         hPGaugeAmount = maxHPGaugeAmount * (float)GetHp() / (float)GetMaxHp();
         hPGauge.fillAmount = hPGaugeAmount;
+
+        if ((float)GetHp() / (float)GetMaxHp() > 0.3f)
+        {
+            hPIcon.sprite = hPIconSprite[0];
+            hPGauge.sprite = hPGaugeSprite[0];
+        }
+        else
+        {
+            hPIcon.sprite = hPIconSprite[1];
+            hPGauge.sprite = hPGaugeSprite[1];
+        }
     }
 }
