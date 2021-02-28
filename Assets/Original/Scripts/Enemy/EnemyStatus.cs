@@ -49,11 +49,11 @@ public class EnemyStatus : MonoBehaviour
         if (countTime >= nextCountTime)
         {
             //　ダメージ量を10で割った商をHPから減らす
-            var tempDamage = damage / 10;
+            var tempDamage = damage / 5;
             //　商が0になったら余りを減らす
             if (tempDamage == 0)
             {
-                tempDamage = damage % 10;
+                tempDamage = damage % 5;
             }
             hp -= tempDamage;
             damage -= tempDamage;
@@ -67,7 +67,7 @@ public class EnemyStatus : MonoBehaviour
 
     public void SetDamage(int opponentAttackPower)
     {
-        var tempDamage = opponentAttackPower * 5 - defensePower * 2;
+        var tempDamage = opponentAttackPower * 3 - defensePower * 2;
 
         if (tempDamage > 0)
         {

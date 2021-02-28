@@ -18,22 +18,22 @@ public class MyStatus : MonoBehaviour
     private int defensePower = 10;
     //HPゲージ
     [SerializeField]
-    private Image hPIcon;
+    private Image hpIcon;
     //HPアイコンのスプライト
     [SerializeField]
-    private Sprite[] hPIconSprite;
+    private Sprite[] hpIconSprite;
     //HPゲージ
     [SerializeField]
-    private Image hPGauge;
+    private Image hpGauge;
     //HPゲージのスプライト
     [SerializeField]
-    private Sprite[] hPGaugeSprite;
+    private Sprite[] hpGaugeSprite;
     //次にHPを減らすまでの時間
     [SerializeField]
     private float nextCountTime = 0f;
 
-    private float maxHPGaugeAmount = 0.85f; //HPゲージの最大割合
-    private float hPGaugeAmount;            //HPゲージの割合
+    private float maxHpGaugeAmount = 0.85f; //HPゲージの最大割合
+    private float hpGaugeAmount;            //HPゲージの割合
     private float countTime = 0f;           //HPを一度減らしてからの経過時間
     private int damage = 0;                 //現在のダメージ量
     private MyController myController;      //プレイヤーの制御スクリプト
@@ -43,27 +43,27 @@ public class MyStatus : MonoBehaviour
     {
         myController = GetComponent<MyController>();
         hp = maxHp;
-        hPGaugeAmount = maxHPGaugeAmount;
-        hPGauge.fillAmount = maxHPGaugeAmount;
+        hpGaugeAmount = maxHpGaugeAmount;
+        hpGauge.fillAmount = maxHpGaugeAmount;
     }
 
     // Update is called once per frame
     void Update()
     {
         //　ダメージなければ何もしない
-        /*if (damage == 0)
+        if (damage == 0)
         {
             return;
-        }*/
+        }
         //　次に減らす時間がきたら
         if (countTime >= nextCountTime)
         {
             //　ダメージ量を10で割った商をHPから減らす
-            var tempDamage = damage / 10;
+            var tempDamage = damage / 5;
             //　商が0になったら余りを減らす
             if (tempDamage == 0)
             {
-                tempDamage = damage % 10;
+                tempDamage = damage % 5;
             }
             hp -= tempDamage;
             damage -= tempDamage;
@@ -77,7 +77,7 @@ public class MyStatus : MonoBehaviour
 
     public void SetDamage(int opponentAttackPower)
     {
-        var tempDamage = opponentAttackPower * 5 - defensePower * 2;
+        var tempDamage = opponentAttackPower * 3 - defensePower * 2;
 
         if (tempDamage > 0)
         {
@@ -113,18 +113,18 @@ public class MyStatus : MonoBehaviour
 
     public void UpdateHPValue()
     {
-        hPGaugeAmount = maxHPGaugeAmount * (float)GetHp() / (float)GetMaxHp();
-        hPGauge.fillAmount = hPGaugeAmount;
+        hpGaugeAmount = maxHpGaugeAmount * (float)GetHp() / (float)GetMaxHp();
+        hpGauge.fillAmount = hpGaugeAmount;
 
         if ((float)GetHp() / (float)GetMaxHp() > 0.3f)
         {
-            hPIcon.sprite = hPIconSprite[0];
-            hPGauge.sprite = hPGaugeSprite[0];
+            hpIcon.sprite = hpIconSprite[0];
+            hpGauge.sprite = hpGaugeSprite[0];
         }
         else
         {
-            hPIcon.sprite = hPIconSprite[1];
-            hPGauge.sprite = hPGaugeSprite[1];
+            hpIcon.sprite = hpIconSprite[1];
+            hpGauge.sprite = hpGaugeSprite[1];
         }
     }
 }

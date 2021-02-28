@@ -18,8 +18,6 @@ public class EnemyController : MonoBehaviour
         Dead
     };
 
-    //プレイヤーのTransformコンポーネント
-    public Transform playerTransform;
     //怯みダメージ
     public int falteringDamage = 20;
     //敵の攻撃範囲
@@ -33,6 +31,7 @@ public class EnemyController : MonoBehaviour
     //敵の状態
     public EnemyState enemyState;
 
+    private Transform playerTransform;                      //プレイヤーのTransformコンポーネント
     private EnemyStatus enemyStatus;                        //敵のステータス管理スクリプト
     private UnityEngine.AI.NavMeshAgent navMeshAgent;       //エージェント
     private Animator animator;                              //敵のアニメーター
@@ -58,7 +57,6 @@ public class EnemyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        distance = Vector3.Distance(transform.position, playerTransform.position);
         elapsedTime += Time.deltaTime;
 
         if (enemyState == EnemyState.Dead)
@@ -88,6 +86,8 @@ public class EnemyController : MonoBehaviour
             }
             else if (enemyState == EnemyState.Chase)
             {
+                distance = Vector3.Distance(transform.position, playerTransform.position);
+
                 //攻撃する距離だったら戦闘態勢
                 if (distance < attackRange[0])
                 {
@@ -129,6 +129,8 @@ public class EnemyController : MonoBehaviour
                 {
                     SetState(EnemyState.Attack);
                 }
+
+                distance = Vector3.Distance(transform.position, playerTransform.position);
 
                 //攻撃する距離から離れたら追跡
                 if (distance > attackRange[1])

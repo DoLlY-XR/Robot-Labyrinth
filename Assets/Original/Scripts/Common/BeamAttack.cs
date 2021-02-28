@@ -33,11 +33,12 @@ public class BeamAttack : MonoBehaviour
 
     void OnParticleCollision(GameObject obj)
     {
-        count++;
-        //Debug.Log("obj.tag = " + obj.tag);
-        if (count == 1)
+        Debug.Log("obj.name = " + obj.name);
+        Debug.Log("obj.tag = " + obj.tag);
+        if (obj.tag == hitTag.ToString())
         {
-            if (obj.tag == hitTag.ToString())
+            count++;
+            if (count == 1)
             {
                 if (hitTag == HitTag.Player)
                 {
