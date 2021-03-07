@@ -12,11 +12,14 @@ public class AimController : MonoBehaviour
     [SerializeField]
     private float fadeSpeed = 0.1f;
 
+    private MyStatus myStatus;
     private float alpha;                    //キャンバスの透明度
 
     // Start is called before the first frame update
     void Start()
     {
+        myStatus = GetComponent<MyStatus>();
+
         canvas.alpha = 0f;
         alpha = canvas.alpha;
     }
@@ -24,6 +27,13 @@ public class AimController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (myStatus.Hp == 0)
+        {
+            canvas.alpha = 0f;
+
+            return;
+        }
+
         if (OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
         {
             StartFadeIn();

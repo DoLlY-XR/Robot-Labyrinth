@@ -26,22 +26,25 @@ public class FixRobotCamera : MonoBehaviour
 
     protected virtual void LateUpdate()
     {
-        rotateY = myController.stickR.y;
-        
-        if (!myController.flagY)
+        if (!myController.cookpit.flag)
         {
-            rotateY = 0f;
-        }
+            rotateY = myController.stickR.y;
 
-        robotCameraTemp.RotateAround(myController.neckTemp.position, this.transform.right, -rotateY);
-        robotCamera.transform.Rotate(new Vector3(-rotateY, 0, 0));
+            if (!myController.flagY)
+            {
+                rotateY = 0f;
+            }
 
-        //Oculus Touchの右中指グリップを押し込んだ場合
-        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
-        {
-            //カメラの座標・角度をリセット
-            robotCameraTemp.localPosition = cameraInitialPos;
-            robotCamera.eulerAngles = new Vector3(cameraInitialAngleX, this.transform.eulerAngles.y, this.transform.eulerAngles.z);
+            robotCameraTemp.RotateAround(myController.neckTemp.position, this.transform.right, -rotateY);
+            robotCamera.transform.Rotate(new Vector3(-rotateY, 0, 0));
+
+            //Oculus TouchのAボタンを押した場合
+            if (OVRInput.GetDown(OVRInput.RawButton.A))
+            {
+                //カメラの座標・角度をリセット
+                robotCameraTemp.localPosition = cameraInitialPos;
+                robotCamera.eulerAngles = new Vector3(cameraInitialAngleX, this.transform.eulerAngles.y, this.transform.eulerAngles.z);
+            }
         }
     }
 }

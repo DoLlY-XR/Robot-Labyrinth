@@ -16,40 +16,52 @@ public class MyStatus : MonoBehaviour
     //防御力
     [SerializeField]
     private int defensePower = 10;
-    //HPゲージ
+    //最大エネルギー量
     [SerializeField]
-    private Image hpIcon;
-    //HPアイコンのスプライト
+    private int maxEnergyAmount = 10;
+    //エネルギー量
     [SerializeField]
-    private Sprite[] hpIconSprite;
-    //HPゲージ
+    private int energyAmount = 10;
+    //エネルギータンク数
     [SerializeField]
-    private Image hpGauge;
-    //HPゲージのスプライト
+    private int energyTankQuantity;
+    //高密度エネルギータンク数
     [SerializeField]
-    private Sprite[] hpGaugeSprite;
+    private int highEnergyTankQuantity;
     //次にHPを減らすまでの時間
     [SerializeField]
     private float nextCountTime = 0f;
+    //装備パーツの情報
+    [SerializeField]
+    private EquipmentParts equipmentParts;
+    //エネルギータンクの情報
+    [SerializeField]
+    private ItemInformation energyTank;
+    //高密度エネルギータンクの情報
+    [SerializeField]
+    private ItemInformation highEnergyTank;
 
-    private float maxHpGaugeAmount = 0.85f; //HPゲージの最大割合
-    private float hpGaugeAmount;            //HPゲージの割合
     private float countTime = 0f;           //HPを一度減らしてからの経過時間
     private int damage = 0;                 //現在のダメージ量
-    private MyController myController;      //プレイヤーの制御スクリプト
 
     // Start is called before the first frame update
     void Start()
     {
-        myController = GetComponent<MyController>();
         hp = maxHp;
-        hpGaugeAmount = maxHpGaugeAmount;
-        hpGauge.fillAmount = maxHpGaugeAmount;
     }
 
     // Update is called once per frame
     void Update()
     {
+        energyTankQuantity = energyTank.Item.quantity;
+        highEnergyTankQuantity = highEnergyTank.Item.quantity;
+
+        if (energyTankQuantity == 0 && energyAmount == 0)
+        {
+            hp -= 10;
+            energyTank.ItemQuantity += 10;
+        }
+
         //　ダメージなければ何もしない
         if (damage == 0)
         {
@@ -65,23 +77,29 @@ public class MyStatus : MonoBehaviour
             {
                 tempDamage = damage % 5;
             }
-            hp -= tempDamage;
+
+            if (hp - tempDamage < 0)
+            {
+                hp = 0;
+            }
+            else
+            {
+                hp -= tempDamage;
+            }
             damage -= tempDamage;
 
             countTime = 0f;
         }
-
-        UpdateHPValue();
         countTime += Time.deltaTime;
     }
 
-    public void SetDamage(int opponentAttackPower)
+    public void SetDamage(float opponentAttackPower)
     {
-        var tempDamage = opponentAttackPower * 3 - defensePower * 2;
+        var tempDamage = opponentAttackPower * 3 - DefensePower * 2;
 
         if (tempDamage > 0)
         {
-            damage += tempDamage;
+            damage += (int)tempDamage;
         }
         else
         {
@@ -91,40 +109,47 @@ public class MyStatus : MonoBehaviour
         countTime = 0f;
     }
 
-    public int GetHp()
+    public int Hp
     {
-        return hp;
+        get { return hp; }
+        set { hp = value; }
     }
 
-    public int GetMaxHp()
+    public int MaxHp
     {
-        return maxHp;
+        get { return maxHp; }
     }
 
-    public int GetAttackPower()
+    public int AttackPower
     {
-        return attackPower;
+        get { return attackPower + equipmentParts.WeaponPower; }
     }
 
-    public int GetDefensePower()
+    public int DefensePower
     {
-        return defensePower;
+        get { return defensePower + equipmentParts.ShieldPower; }
     }
 
-    public void UpdateHPValue()
+    public int MaxEnergyAmount
     {
-        hpGaugeAmount = maxHpGaugeAmount * (float)GetHp() / (float)GetMaxHp();
-        hpGauge.fillAmount = hpGaugeAmount;
+        get { return maxEnergyAmount; }
+    }
 
-        if ((float)GetHp() / (float)GetMaxHp() > 0.3f)
-        {
-            hpIcon.sprite = hpIconSprite[0];
-            hpGauge.sprite = hpGaugeSprite[0];
-        }
-        else
-        {
-            hpIcon.sprite = hpIconSprite[1];
-            hpGauge.sprite = hpGaugeSprite[1];
-        }
+    public int EnergyAmount
+    {
+        get { return energyAmount; }
+        set { energyAmount = value; }
+    }
+
+    public int EnergyTankQuantity
+    {
+        get { return energyTankQuantity; }
+        set { energyTankQuantity = value; }
+    }
+
+    public int HighEnergyTankQuantity
+    {
+        get { return highEnergyTankQuantity; }
+        set { highEnergyTankQuantity = value; }
     }
 }

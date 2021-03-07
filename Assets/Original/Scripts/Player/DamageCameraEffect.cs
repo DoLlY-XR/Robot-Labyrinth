@@ -20,16 +20,18 @@ public class DamageCameraEffect : MonoBehaviour
     [SerializeField]
     private GameObject cookpit;
 
-    private DamageRoomEffect damageRoomEffect;
+    private MyStatus myStatus;
+    private int tempHp;                         //プレイヤーの仮のHP
     private bool damageEffect = false;
     private float dTime = 0f;
-    private int count = 0;
 
     // Start is called before the first frame update
     void Start()
     {
-        //コックピットのDamageRoomEffectを取得
-        damageRoomEffect = cookpit.GetComponent<DamageRoomEffect>();
+        //プレイヤーのステータスを取得
+        myStatus = GetComponent<MyStatus>();
+        //仮のHPを取得
+        tempHp = myStatus.Hp;
     }
 
     // Update is called once per frame
@@ -37,7 +39,22 @@ public class DamageCameraEffect : MonoBehaviour
     {
         var robotCameras = robotCamera.GetComponentsInChildren<GlitchFx>();
 
-        if (damageRoomEffect.damageCameraEffect)
+        if (myStatus.Hp == 0)
+        {
+            foreach (GlitchFx camera in robotCameras)
+            {
+                camera.intensity = 1f;
+                camera.enabled = true;
+            }
+            radarCamera.GetComponent<GlitchFx>().intensity = 1f;
+            radarCamera.GetComponent<GlitchFx>().enabled = true;
+            aimCamera.GetComponent<GlitchFx>().intensity = 1f;
+            aimCamera.GetComponent<GlitchFx>().enabled = true;
+
+            return;
+        }
+
+        if (tempHp > myStatus.Hp)
         {
             foreach (GlitchFx camera in robotCameras)
             {
@@ -68,5 +85,7 @@ public class DamageCameraEffect : MonoBehaviour
                 dTime = 0f;
             }
         }
+
+        tempHp = myStatus.Hp;
     }
 }

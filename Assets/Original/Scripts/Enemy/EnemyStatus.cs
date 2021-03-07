@@ -10,12 +10,15 @@ public class EnemyStatus : MonoBehaviour
     //敵のHP
     [SerializeField]
     private int hp;
+    //敵のHP
+    [SerializeField]
+    private int lv = 1;
     //敵の攻撃力
     [SerializeField]
-    private int attackPower = 5;
+    private int attackPower = 7;
     //敵の防御力
     [SerializeField]
-    private int defensePower = 5;
+    private int defensePower = 7;
     //HP表示用UI
     [SerializeField]
     private GameObject HPUI;
@@ -65,13 +68,13 @@ public class EnemyStatus : MonoBehaviour
         countTime += Time.deltaTime;
     }
 
-    public void SetDamage(int opponentAttackPower)
+    public int SetDamage(float opponentAttackPower)
     {
-        var tempDamage = opponentAttackPower * 3 - defensePower * 2;
+        var tempDamage = opponentAttackPower * 3 - DefensePower * 2;
 
         if (tempDamage > 0)
         {
-            damage += tempDamage;
+            damage += (int)tempDamage;
         }
         else
         {
@@ -79,31 +82,42 @@ public class EnemyStatus : MonoBehaviour
         }
         
         countTime = 0f;
+
+        return (int)tempDamage;
     }
 
-    public int GetHp()
+    public int Hp
     {
-        return hp;
+        get { return hp; }
     }
 
-    public int GetMaxHp()
+    public int MaxHp
     {
-        return maxHp;
+        get { return maxHp; }
     }
 
     public void UpdateHPValue()
     {
-        hpSlider.value = (float)GetHp() / (float)GetMaxHp();
+        hpSlider.value = (float)Hp / (float)MaxHp;
 
-        if (GetHp() <= 0)
+        if (Hp <= 0)
         {
             enemyController.SetState(EnemyController.EnemyState.Dead);
         }
     }
 
-    public int GetAttackPower()
+    public int Lv
     {
-        return attackPower;
+        get { return lv; }
     }
 
+    public int AttackPower
+    {
+        get { return attackPower + lv; }
+    }
+
+    public int DefensePower
+    {
+        get { return defensePower + lv; }
+    }
 }

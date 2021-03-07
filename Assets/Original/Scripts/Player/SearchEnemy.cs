@@ -18,12 +18,8 @@ public class SearchEnemy : MonoBehaviour
 
     void OnTriggerStay(Collider col)
     {
-        Debug.Log("OnTriggerStay");
-        Debug.Log("col.tag = " + col.tag);
-        Debug.Log("col.name = " + col.name);
         if (col.tag == "RadarTarget")
         {
-            Debug.Log("不透明");
             var sprite = col.GetComponent<SpriteRenderer>();
             sprite.enabled = true;
         }
@@ -31,12 +27,8 @@ public class SearchEnemy : MonoBehaviour
 
     void OnTriggerExit(Collider col)
     {
-        Debug.Log("OnTriggerExit");
-        Debug.Log("col.tag = " + col.tag);
-        Debug.Log("col.name = " + col.name);
         if (col.tag == "RadarTarget")
         {
-            Debug.Log("透明");
             var sprite = col.GetComponent<SpriteRenderer>();
             sprite.enabled = false;
         }

@@ -31,7 +31,9 @@ public class EnemyController : MonoBehaviour
     //敵の状態
     public EnemyState enemyState;
 
-    private Transform playerTransform;                      //プレイヤーのTransformコンポーネント
+    [NonSerialized]
+    public Transform playerTransform;                      //プレイヤーのTransformコンポーネント
+
     private EnemyStatus enemyStatus;                        //敵のステータス管理スクリプト
     private UnityEngine.AI.NavMeshAgent navMeshAgent;       //エージェント
     private Animator animator;                              //敵のアニメーター
@@ -242,10 +244,9 @@ public class EnemyController : MonoBehaviour
     }
 
     //敵のダメージ計算
-    public void TakeDamage(int attackedPower)
+    public void TakeDamage(float attackedPower)
     {
-        accumulationDamage += attackedPower;
-        enemyStatus.SetDamage(attackedPower);
+        accumulationDamage = enemyStatus.SetDamage(attackedPower);
 
         if (accumulationDamage > falteringDamage)
         {

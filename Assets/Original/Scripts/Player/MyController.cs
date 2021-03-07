@@ -17,6 +17,7 @@ public class MyController : MonoBehaviour
     public float gravity = 20.0F;                   //重力の大きさ
     public float rotateSpeed = 3.0F;                //回転速度
     public float postureRotateLimit = 30f;          //銃撃姿勢で回転出来る限度
+    public ActiveDisplay cookpit;
 
     [NonSerialized]
     public Animator animator;                       //プレイヤーのアニメーター
@@ -37,6 +38,7 @@ public class MyController : MonoBehaviour
     private float runSpeed;                         //現在の歩行速度
     private bool combatPosture = false;             //戦闘態勢の切替フラグ
     private bool isSteping = false;                 //ステップフラグ
+    private bool dead = false;
     private float dTime = 0.0f;
 
     // Start is called before the first frame update
@@ -55,8 +57,25 @@ public class MyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (dead)
+        {
+            return;
+        }
+
+        if (myStatus.Hp == 0)
+        {
+            animator.SetTrigger("Dead");
+            dead = true;
+
+            return;
+        }
+
         stickL = OVRInput.Get(OVRInput.RawAxis2D.LThumbstick);      // 左手のアナログスティックの向きを取得
-        stickR = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick);      // 右手のアナログスティックの向きを取得
+        stickR = new Vector2(0, 0);
+        if (!cookpit.flag)
+        {
+            stickR = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick);      // 右手のアナログスティックの向きを取得
+        }
 
         //プレイヤーの接地判定
         if (controller.isGrounded)
@@ -80,39 +99,42 @@ public class MyController : MonoBehaviour
 
     protected virtual void LateUpdate()
     {
-        rotateY += stickR.y;
-        tempRotateY = rotateY;
+        if (!cookpit.flag)
+        {
+            rotateY += stickR.y;
+            tempRotateY = rotateY;
 
-        if (rotateY > postureRotateLimit)
-        {
-            rotateY = postureRotateLimit;
-            flagY = false;
-        }
-        else if (rotateY < -postureRotateLimit)
-        {
-            rotateY = -postureRotateLimit;
-            flagY = false;
-        }
-        else
-        {
-            flagY = true;
-        }
+            if (rotateY > postureRotateLimit)
+            {
+                rotateY = postureRotateLimit;
+                flagY = false;
+            }
+            else if (rotateY < -postureRotateLimit)
+            {
+                rotateY = -postureRotateLimit;
+                flagY = false;
+            }
+            else
+            {
+                flagY = true;
+            }
 
-        if (animator.GetBool("is_setting"))    //戦闘態勢の時
-        {
-            Spine.RotateAround(spineTemp.position, this.transform.right, -rotateY);
-            weaponBone.RotateAround(spineTemp.position, this.transform.right, -rotateY);
-        }
-        else
-        {
-            Neck.transform.Rotate(new Vector3(0, 0, -rotateY));
-        }
+            if (animator.GetBool("is_setting"))    //戦闘態勢の時
+            {
+                Spine.RotateAround(spineTemp.position, this.transform.right, -rotateY);
+                weaponBone.RotateAround(spineTemp.position, this.transform.right, -rotateY);
+            }
+            else
+            {
+                Neck.transform.Rotate(new Vector3(0, 0, -rotateY));
+            }
 
-        //Oculus Touchの右中指グリップを押し込んだ場合
-        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
-        {
-            //上半身のY軸角度をリセット
-            rotateY = 0f;
+            //Oculus TouchのAボタンを押した場合
+            if (OVRInput.GetDown(OVRInput.RawButton.A))
+            {
+                //上半身のY軸角度をリセット
+                rotateY = 0f;
+            }
         }
     }
 
@@ -180,8 +202,15 @@ public class MyController : MonoBehaviour
     {
         if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger))     //Oculus Touchの右人差し指トリガーを押し込んだ場合
         {
-            //射撃遷移変数の初期化
-            animator.SetBool("is_shooting", true);
+            if (!OVRInput.Get(OVRInput.RawButton.B) && myStatus.EnergyAmount > 0)
+            {
+                //射撃遷移変数の初期化
+                animator.SetBool("is_shooting", true);
+            }
+            else if (OVRInput.Get(OVRInput.RawButton.B) && myStatus.HighEnergyTankQuantity > 0)
+            {
+                animator.SetBool("spacial_shooting", true);
+            }
         }
         else
         {
@@ -189,7 +218,8 @@ public class MyController : MonoBehaviour
             animator.SetBool("is_shooting", false);
         }
 
-        if (OVRInput.GetDown(OVRInput.RawButton.B))                 //Oculus TouchのBボタンを押した場合
+        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger) &&
+            myStatus.EnergyAmount != myStatus.MaxEnergyAmount && myStatus.EnergyTankQuantity > 0)    //Oculus Touchの右中指グリップを押し込んだ場合
         {
             //リロード遷移変数の初期化
             animator.SetBool("is_reroading", true);
@@ -308,7 +338,7 @@ public class MyController : MonoBehaviour
     }
 
     //ダメージ計算
-    public void TakeDamage(int attackedPower)
+    public void TakeDamage(float attackedPower)
     {
         myStatus.SetDamage(attackedPower);
     }

@@ -40,7 +40,7 @@ public class EnemyShootingController : MonoBehaviour
                     (particlePrefab, muzzle.position, muzzle.rotation);
 
             BeamAttack beamAttack = particleInstance.GetComponent<BeamAttack>();
-            beamAttack.SetAttackPower(enemyStatus.GetAttackPower());
+            beamAttack.SetAttackPower(enemyStatus.AttackPower);
             Debug.Log("パーティクル生成");
 
             //パーティクルを開始

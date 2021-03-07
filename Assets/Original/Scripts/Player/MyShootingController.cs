@@ -5,15 +5,27 @@ using UnityEngine;
 public class MyShootingController : MonoBehaviour
 {
     //ビームのパーティクルプレハブ
-    public ParticleSystem particlePrefab;
+    [SerializeField]
+    private ParticleSystem particlePrefab;
+    //特殊ビームのパーティクルプレハブ
+    [SerializeField]
+    private ParticleSystem specialParticlePrefab;
     //銃口
-    public Transform muzzle;
+    [SerializeField]
+    private Transform muzzle;
+    //エネルギータンクの情報
+    [SerializeField]
+    private ItemInformation energyTank;
+    //高密度エネルギータンクの情報
+    [SerializeField]
+    private ItemInformation highEnergyTank;
 
     private MyController myController;
     private MyStatus myStatus;                      //プレイヤーのステータス管理スクリプト
     private Vector3 muzzleInitialPos;
     private float muzzleInitialAngleX;
     private float animationTime = 0f;
+    private float specialWaitTime = 0f;
     private int dTime = 0;
     private float rotateY = 0f;
 
@@ -32,53 +44,101 @@ public class MyShootingController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_SingleShot_AR"))
+        if (!myController.cookpit.flag)
         {
-            dTime++;
-        }
-        else
-        {
-            dTime = 0;
-        }
+            if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_SingleShot_AR") ||
+            myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Reload") ||
+            myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_Autoshot_AR"))
+            {
+                dTime++;
 
-        if (myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime - animationTime > 1f)
-        {
-            dTime = 0;
-            animationTime = myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime;
-        }
+                if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_Autoshot_AR"))
+                {
+                    specialWaitTime += Time.deltaTime;
 
-        if (dTime == 1)            //戦闘態勢　Oculus Touchの右人差し指トリガーを押し込んだ場合
-        {
-            animationTime = myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime;
-            
-            var particleInstance = Instantiate<ParticleSystem>
-                    (particlePrefab, muzzle.position, muzzle.rotation);
-            
-            BeamAttack beamAttack = particleInstance.GetComponent<BeamAttack>();
-            beamAttack.SetAttackPower(myStatus.GetAttackPower());
+                    if (specialWaitTime > 1.5f)
+                    {
+                        myController.animator.SetBool("spacial_shooting", false);
+                    }
+                }
+            }
+            else
+            {
+                dTime = 0;
+                specialWaitTime = 0f;
+            }
 
-            //パーティクルを開始
-            particleInstance.Play(true);
+            if (myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime - animationTime > 1f)
+            {
+                if (!myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_Autoshot_AR"))
+                {
+                    dTime = 0;
+                    animationTime = myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime;
+                }
+            }
+
+            if (dTime == 1)            //銃撃時
+            {
+                animationTime = myController.animator.GetCurrentAnimatorStateInfo(1).normalizedTime;
+
+                if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_SingleShot_AR") &&
+                    myStatus.EnergyAmount > 0)
+                {
+                    myStatus.EnergyAmount--;
+
+                    var particleInstance = Instantiate<ParticleSystem>
+                            (particlePrefab, muzzle.position, muzzle.rotation);
+                    particleInstance.transform.parent = muzzle;
+
+                    BeamAttack beamAttack = particleInstance.GetComponent<BeamAttack>();
+                    beamAttack.SetAttackPower(myStatus.AttackPower);
+
+                    //パーティクルを開始
+                    particleInstance.Play(true);
+                }
+                else if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Reload"))
+                {
+                    myStatus.EnergyAmount = myStatus.MaxEnergyAmount;
+                    energyTank.ItemQuantity--;
+                }
+                else if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_Autoshot_AR"))
+                {
+                    highEnergyTank.ItemQuantity--;
+
+                    var particleInstance = Instantiate<ParticleSystem>
+                            (specialParticlePrefab, muzzle.position, muzzle.rotation);
+                    particleInstance.transform.parent = muzzle;
+
+                    SpecialBeamAttack specialBeamAttack = particleInstance.GetComponent<SpecialBeamAttack>();
+                    specialBeamAttack.SetAttackPower(myStatus.AttackPower);
+
+                    //パーティクルを開始
+                    particleInstance.Play(true);
+                }
+            }
         }
     }
 
     protected virtual void LateUpdate()
     {
-        rotateY = myController.stickR.y;
-
-        if (!myController.flagY)
+        if (!myController.cookpit.flag)
         {
-            rotateY = 0f;
-        }
+            rotateY = myController.stickR.y;
 
-        muzzle.RotateAround(myController.spineTemp.position, this.transform.right, -rotateY);
+            if (!myController.flagY)
+            {
+                rotateY = 0f;
+            }
 
-        //Oculus Touchの右中指グリップを押し込んだ場合
-        if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
-        {
-            //銃口の座標・角度をリセット
-            muzzle.localPosition = muzzleInitialPos;
-            muzzle.eulerAngles = new Vector3(muzzleInitialAngleX, this.transform.eulerAngles.y, this.transform.eulerAngles.z);
+            muzzle.RotateAround(myController.spineTemp.position, this.transform.right, -rotateY);
+
+            //Oculus TouchのAボタンを押した場合
+            if (OVRInput.GetDown(OVRInput.RawButton.A))
+            {
+                //銃口の座標・角度をリセット
+                muzzle.localPosition = muzzleInitialPos;
+                muzzle.eulerAngles = new Vector3(muzzleInitialAngleX, this.transform.eulerAngles.y, this.transform.eulerAngles.z);
+            }
         }
     }
 }
