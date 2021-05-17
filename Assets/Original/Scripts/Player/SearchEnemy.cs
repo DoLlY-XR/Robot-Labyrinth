@@ -20,8 +20,18 @@ public class SearchEnemy : MonoBehaviour
     {
         if (col.tag == "RadarTarget")
         {
-            var sprite = col.GetComponent<SpriteRenderer>();
-            sprite.enabled = true;
+            Debug.Log("レーダー外 col.name = " + col.name);
+            if (col.transform.parent.GetComponent<EnemyController>().enemyState == EnemyController.EnemyState.Attack ||
+                col.transform.parent.GetComponent<EnemyController>().enemyState == EnemyController.EnemyState.Chase ||
+                col.transform.parent.GetComponent<EnemyController>().enemyState == EnemyController.EnemyState.Freeze)
+            {
+                col.GetComponent<SpriteRenderer>().color = new Color(1f, 0f, 0f, 1f);
+            }
+            else if (col.transform.parent.GetComponent<EnemyController>().enemyState == EnemyController.EnemyState.Idle ||
+                col.transform.parent.GetComponent<EnemyController>().enemyState == EnemyController.EnemyState.Walk)
+            {
+                col.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 0f, 1f);
+            }
         }
     }
 
@@ -29,8 +39,12 @@ public class SearchEnemy : MonoBehaviour
     {
         if (col.tag == "RadarTarget")
         {
-            var sprite = col.GetComponent<SpriteRenderer>();
-            sprite.enabled = false;
+            Debug.Log("レーダー外 col.name = " + col.name);
+            var spriteColor = col.GetComponent<SpriteRenderer>().color;
+            var rColor = spriteColor.r;
+            var gColor = spriteColor.g;
+            var bColor = spriteColor.b;
+            col.GetComponent<SpriteRenderer>().color = new Color(rColor, gColor, bColor, 0f);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MyShootingController : MonoBehaviour
 {
@@ -19,9 +20,16 @@ public class MyShootingController : MonoBehaviour
     //高密度エネルギータンクの情報
     [SerializeField]
     private ItemInformation highEnergyTank;
+    //ActivityLogUIManagerコンポーネント
+    [SerializeField]
+    private ActivityLogUIManager ActivityLogPanel;
+    //Logのプレハブ
+    [SerializeField]
+    private GameObject logPrefab;
 
     private MyController myController;
     private MyStatus myStatus;                      //プレイヤーのステータス管理スクリプト
+    private SoundManager soundManager;
     private Vector3 muzzleInitialPos;
     private float muzzleInitialAngleX;
     private float animationTime = 0f;
@@ -36,6 +44,8 @@ public class MyShootingController : MonoBehaviour
         myController = GetComponent<MyController>();
         //プレイヤーのMyStatusコンポーネントを取得
         myStatus = GetComponent<MyStatus>();
+        //プレイヤーのSoundManagerコンポーネントを取得
+        soundManager = GetComponent<SoundManager>();
         //銃口の初期位置・角度を取得
         muzzleInitialPos = muzzle.localPosition;
         muzzleInitialAngleX = muzzle.eulerAngles.x;
@@ -44,7 +54,12 @@ public class MyShootingController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!myController.cookpit.flag)
+        if (myController.dead || myController.gameManager.gameStatus != GameManager.GameStatus.Progress)
+        {
+            return;
+        }
+
+        if (!myController.activeConsole.flag)
         {
             if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_SingleShot_AR") ||
             myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Reload") ||
@@ -100,6 +115,9 @@ public class MyShootingController : MonoBehaviour
                 {
                     myStatus.EnergyAmount = myStatus.MaxEnergyAmount;
                     energyTank.ItemQuantity--;
+
+                    logPrefab.transform.GetChild(0).GetComponent<Text>().text = "エネルギーを補充しました。";
+                    ActivityLogPanel.AddLog(logPrefab);
                 }
                 else if (myController.animator.GetCurrentAnimatorStateInfo(1).IsName("Shoot_Autoshot_AR"))
                 {
@@ -114,6 +132,7 @@ public class MyShootingController : MonoBehaviour
 
                     //パーティクルを開始
                     particleInstance.Play(true);
+                    soundManager.SpecialShot();
                 }
             }
         }
@@ -121,7 +140,7 @@ public class MyShootingController : MonoBehaviour
 
     protected virtual void LateUpdate()
     {
-        if (!myController.cookpit.flag)
+        if (!myController.activeConsole.flag)
         {
             rotateY = myController.stickR.y;
 

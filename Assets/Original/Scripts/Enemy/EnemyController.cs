@@ -6,6 +6,13 @@ using UnityEngine.AI;
 
 public class EnemyController : MonoBehaviour
 {
+    public enum EnemyType
+    {
+        Mob,
+        Middle1,
+        Middle2,
+        Boss
+    }
     //敵の状態リスト
     public enum EnemyState
     {
@@ -18,10 +25,13 @@ public class EnemyController : MonoBehaviour
         Dead
     };
 
+    public EnemyType enemyType;
     //怯みダメージ
     public int falteringDamage = 20;
     //敵の攻撃範囲
-    public float[] attackRange = {100f, 120f};
+    public float[] attackRange = {8f, 12f};
+    //敵の追跡範囲
+    public float outOfRange = 25f;
     //回転スピード
     public float rotateSpeed = 60f;
     //待ち時間
@@ -30,19 +40,25 @@ public class EnemyController : MonoBehaviour
     public float freezeTimeAfterAttack = 1f;
     //敵の状態
     public EnemyState enemyState;
+    //障害物のレイヤー
+    public LayerMask obstacleLayer;
+
+    [SerializeField]
+    private float distance = 0f;                            //目的地点との距離
 
     [NonSerialized]
-    public Transform playerTransform;                      //プレイヤーのTransformコンポーネント
+    public Transform playerTransform;                       //プレイヤーのTransformコンポーネント
+    //[NonSerialized]
+    public EnemyPopUp enemyPop;
 
     private EnemyStatus enemyStatus;                        //敵のステータス管理スクリプト
     private UnityEngine.AI.NavMeshAgent navMeshAgent;       //エージェント
     private Animator animator;                              //敵のアニメーター
     private Vector3 startPosition;                          //スタート地点
     private Vector3 destination;                            //目的地点
-    private Vector3 direction;                              //移動方向
     private float elapsedTime = 0f;                         //Idleの時間
-    private float distance = 0f;                            //目的地点との距離
     private int accumulationDamage;                         //蓄積ダメージ
+    private GameManager gameManager;
 
     // Start is called before the first frame update
     void Start()
@@ -54,17 +70,34 @@ public class EnemyController : MonoBehaviour
         startPosition = transform.position;
         var randDestination = UnityEngine.Random.insideUnitCircle * 8;
         destination = startPosition + new Vector3(randDestination.x, transform.position.y, randDestination.y);
+
+        if (enemyType == EnemyType.Middle1 || enemyType == EnemyType.Middle2)
+        {
+            this.transform.GetChild(0).GetComponent<Renderer>().material.color = Color.blue;
+        }
+        else if (enemyType == EnemyType.Boss)
+        {
+            this.transform.GetChild(0).GetComponent<Renderer>().material.color = Color.red;
+        }
+
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        elapsedTime += Time.deltaTime;
+        if (gameManager.gameStatus == GameManager.GameStatus.Over || gameManager.gameStatus == GameManager.GameStatus.Clear)
+        {
+            Destroy(gameObject);
+        }
 
         if (enemyState == EnemyState.Dead)
         {
             return;
         }
+
+        elapsedTime += Time.deltaTime;
+
         //見回りまたはキャラクターを追いかける状態
         if (enemyState == EnemyState.Walk || enemyState == EnemyState.Chase)
         {
@@ -90,8 +123,12 @@ public class EnemyController : MonoBehaviour
             {
                 distance = Vector3.Distance(transform.position, playerTransform.position);
 
-                //攻撃する距離だったら戦闘態勢
-                if (distance < attackRange[0])
+                if (distance > outOfRange)
+                {
+                    playerTransform = null;
+                    SetState(EnemyState.Idle);
+                }
+                else if (distance < attackRange[0])      //攻撃する距離だったら戦闘態勢
                 {
                     //硬直時間を過ぎていたら攻撃状態
                     if (elapsedTime > freezeTimeAfterAttack)
@@ -157,7 +194,6 @@ public class EnemyController : MonoBehaviour
                 SetState(EnemyState.Freeze);
             }
         }
-        Debug.Log("enemyState = " + enemyState);
     }
 
     //敵キャラクターの状態変更メソッド
@@ -189,8 +225,10 @@ public class EnemyController : MonoBehaviour
         else if (tempState == EnemyState.Idle)
         {
             elapsedTime = 0f;
+            playerTransform = null;
             animator.SetFloat("frontSpeed", 0f);
             navMeshAgent.isStopped = true;
+            distance = 0f;
         }
         else if (tempState == EnemyState.Attack)
         {
@@ -198,7 +236,6 @@ public class EnemyController : MonoBehaviour
             animator.SetFloat("backSpeed", 0f);
             animator.SetBool("Attack", true);
             navMeshAgent.velocity = Vector3.zero;
-            //audioSource.PlayOneShot(attackSound);
             navMeshAgent.isStopped = true;
         }
         else if (tempState == EnemyState.Freeze)
@@ -220,6 +257,13 @@ public class EnemyController : MonoBehaviour
             animator.SetTrigger("Dead");
             Destroy(this.gameObject, 3f);
             navMeshAgent.isStopped = true;
+            enemyPop.PopUpCount--;
+            enemyPop.indicateObject.Decrease(this.gameObject);
+
+            if (enemyType == EnemyType.Boss)
+            {
+                gameManager.gameStatus = GameManager.GameStatus.Clear;
+            }
         }
     }
 
@@ -244,8 +288,13 @@ public class EnemyController : MonoBehaviour
     }
 
     //敵のダメージ計算
-    public void TakeDamage(float attackedPower)
+    public void TakeDamage(float attackedPower, Transform playerTransform)
     {
+        if (enemyState != EnemyState.Chase || enemyState != EnemyState.Attack || enemyState != EnemyState.Freeze)
+        {
+            SetState(EnemyState.Chase, playerTransform);
+        }
+
         accumulationDamage = enemyStatus.SetDamage(attackedPower);
 
         if (accumulationDamage > falteringDamage)

@@ -12,6 +12,7 @@ public class ItemListUIManager : MonoBehaviour
     public Transform content;
     public ScrollRect scrollView;
     public GameObject[] transition;
+    public GameObject[] itemPrefabList;
 
     [NonSerialized]
     public bool flag = false;               //このスクリプトを動かすフラグ
@@ -37,13 +38,16 @@ public class ItemListUIManager : MonoBehaviour
 
         for (int i = 0; i < items.Count; i++)
         {
-            if (!items[i].activeSelf)
+            if (items[i].GetComponent<ItemInformation>().ItemQuantity == 0)
             {
-                items.RemoveAt(i);
+                if (items[i].GetComponent<ItemInformation>().Item.itemType != ItemInformation.ItemType.EnergyTank && items[i].GetComponent<ItemInformation>().Item.itemType != ItemInformation.ItemType.HighEnergyTank)
+                {
+                    items.RemoveAt(i);
+                }
             }
         }
 
-        if (flag && this.gameObject.activeSelf)
+        if (flag)
         {
             transitionTime += Time.deltaTime;
 
@@ -86,18 +90,28 @@ public class ItemListUIManager : MonoBehaviour
             }
         }
     }
-    public void AddItem(ItemInformation.ItemType itemType)
+    public void AddItem(ItemInformation.ItemType itemType, int quantity)
     {
+        bool itemFlag = false;
+
         foreach (Transform child in content)
         {
             if (child.GetComponent<ItemInformation>().Item.itemType == itemType)
             {
-                child.GetComponent<ItemInformation>().ItemQuantity++;
+                child.GetComponent<ItemInformation>().ItemQuantity += quantity;
+                itemFlag = true;
+            }
+        }
 
-                if (!child.gameObject.activeSelf)
+        if (!itemFlag)
+        {
+            foreach (var itemPrefab in itemPrefabList)
+            {
+                if (itemPrefab.GetComponent<ItemInformation>().Item.itemType == itemType)
                 {
-                    child.gameObject.SetActive(true);
-                    items.Add(child.gameObject);
+                    GameObject addItem = Instantiate<GameObject>(itemPrefab, content.transform);
+                    addItem.GetComponent<ItemInformation>().ItemQuantity += quantity;
+                    items.Add(addItem.gameObject);
                 }
             }
         }

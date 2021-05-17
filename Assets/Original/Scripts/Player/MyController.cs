@@ -17,10 +17,13 @@ public class MyController : MonoBehaviour
     public float gravity = 20.0F;                   //重力の大きさ
     public float rotateSpeed = 3.0F;                //回転速度
     public float postureRotateLimit = 30f;          //銃撃姿勢で回転出来る限度
-    public ActiveDisplay cookpit;
+    public GameObject console;
+    public GameManager gameManager;
 
     [NonSerialized]
     public Animator animator;                       //プレイヤーのアニメーター
+    [NonSerialized]
+    public ActiveConsole activeConsole;
     [NonSerialized]
     public float tempRotateY = 0.0f;                //ShootingControlスクリプトで使うrotateY
     [NonSerialized]
@@ -31,14 +34,16 @@ public class MyController : MonoBehaviour
     public Vector2 stickR;                          //右手のアナログスティック
     [NonSerialized]
     public bool flagY = true;                       //他のスクリプトで使うフラグY
+    [NonSerialized]
+    public bool dead = false;
 
     private CharacterController controller;         //プレイヤーのコントローラー
     private MyStatus myStatus;                      //プレイヤーのステータス管理スクリプト
+    private SoundManager soundManager;
     private Vector3 moveDirection = Vector3.zero;   //プレイヤーの移動量
     private float runSpeed;                         //現在の歩行速度
     private bool combatPosture = false;             //戦闘態勢の切替フラグ
     private bool isSteping = false;                 //ステップフラグ
-    private bool dead = false;
     private float dTime = 0.0f;
 
     // Start is called before the first frame update
@@ -50,6 +55,10 @@ public class MyController : MonoBehaviour
         animator = GetComponent<Animator>();
         //プレイヤーのMyStatusコンポーネントを取得
         myStatus = GetComponent<MyStatus>();
+        //プレイヤーのSoundManagerコンポーネントを取得
+        soundManager = GetComponent<SoundManager>();
+        //コンソールのActiveConsoleコンポーネントを取得
+        activeConsole = console.GetComponent<ActiveConsole>();
         //デフォルトの歩行速度を初期化
         runSpeed = speed;
     }
@@ -57,8 +66,17 @@ public class MyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (dead)
+        if (dead || gameManager.gameStatus != GameManager.GameStatus.Progress)
         {
+            //遷移変数の初期化
+            animator.SetBool("is_setting", false);
+            animator.SetBool("walk_front", false);
+            animator.SetBool("walk_back", false);
+            animator.SetBool("walk_right", false);
+            animator.SetBool("walk_left", false);
+            animator.SetBool("is_moving", false);
+            animator.SetBool("is_shooting", false);
+
             return;
         }
 
@@ -66,13 +84,14 @@ public class MyController : MonoBehaviour
         {
             animator.SetTrigger("Dead");
             dead = true;
+            gameManager.gameStatus = GameManager.GameStatus.Over;
 
             return;
         }
 
         stickL = OVRInput.Get(OVRInput.RawAxis2D.LThumbstick);      // 左手のアナログスティックの向きを取得
         stickR = new Vector2(0, 0);
-        if (!cookpit.flag)
+        if (!activeConsole.flag)
         {
             stickR = OVRInput.Get(OVRInput.RawAxis2D.RThumbstick);      // 右手のアナログスティックの向きを取得
         }
@@ -99,7 +118,7 @@ public class MyController : MonoBehaviour
 
     protected virtual void LateUpdate()
     {
-        if (!cookpit.flag)
+        if (!activeConsole.flag)
         {
             rotateY += stickR.y;
             tempRotateY = rotateY;
@@ -172,11 +191,15 @@ public class MyController : MonoBehaviour
         {
             //前方向に走るアニメーションへ遷移
             animator.SetFloat("speed", 2f);
+
+            runSpeed = speed * 2f;
         }
         else if (stickL.y < -0.1f && !combatPosture)     //↓入力の検知かつ通常態勢の時
         {
             //前方向に走るアニメーションへ遷移
             animator.SetFloat("speed", -2f);
+
+            runSpeed = speed;
         }
         else                                            //上下入力が検知されなくて通常態勢の時
         {
@@ -210,6 +233,11 @@ public class MyController : MonoBehaviour
             else if (OVRInput.Get(OVRInput.RawButton.B) && myStatus.HighEnergyTankQuantity > 0)
             {
                 animator.SetBool("spacial_shooting", true);
+            }
+            else
+            {
+                //射撃遷移変数の初期化
+                animator.SetBool("is_shooting", false);
             }
         }
         else
@@ -340,6 +368,12 @@ public class MyController : MonoBehaviour
     //ダメージ計算
     public void TakeDamage(float attackedPower)
     {
+        if (dead)
+        {
+            return;
+        }
+
+        soundManager.Damage();
         myStatus.SetDamage(attackedPower);
     }
 }

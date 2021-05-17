@@ -40,6 +40,15 @@ public class MyStatus : MonoBehaviour
     //高密度エネルギータンクの情報
     [SerializeField]
     private ItemInformation highEnergyTank;
+    //ItemListUIManagerコンポーネント
+    [SerializeField]
+    private ItemListUIManager ItemListField;
+    //ActivityLogUIManagerコンポーネント
+    [SerializeField]
+    private ActivityLogUIManager ActivityLogPanel;
+    //Logのプレハブ
+    [SerializeField]
+    private GameObject logPrefab;
 
     private float countTime = 0f;           //HPを一度減らしてからの経過時間
     private int damage = 0;                 //現在のダメージ量
@@ -58,8 +67,16 @@ public class MyStatus : MonoBehaviour
 
         if (energyTankQuantity == 0 && energyAmount == 0)
         {
-            hp -= 10;
-            energyTank.ItemQuantity += 10;
+            hp -= 50;
+
+            if (hp <= 0)
+            {
+                hp = 1;
+            }
+
+            logPrefab.transform.GetChild(0).GetComponent<Text>().text = "HPを削ってエネルギータンクを生成しました。";
+            ActivityLogPanel.AddLog(logPrefab);
+            ItemListField.AddItem(ItemInformation.ItemType.EnergyTank, 10);
         }
 
         //　ダメージなければ何もしない

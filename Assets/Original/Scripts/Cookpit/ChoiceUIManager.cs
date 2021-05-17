@@ -20,6 +20,7 @@ public class ChoiceUIManager : MonoBehaviour
     [NonSerialized]
     public int number = 0;
 
+    private CanvasGroup choiceCanvas;
     private DescriptionUIManager description;
     private ItemInformation itemInfo;
     private ItemInformation upgradeItemInfo;
@@ -28,7 +29,7 @@ public class ChoiceUIManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        choiceCanvas = GetComponent<CanvasGroup>();
     }
 
     // Update is called once per frame
@@ -37,6 +38,7 @@ public class ChoiceUIManager : MonoBehaviour
         if (flag)
         {
             transitionTime += Time.deltaTime;
+            choiceCanvas.alpha = 1f;
 
             button[0].transform.Find("Quantity").GetComponent<Text>().text = "× " + quantity;
             itemInfo = itemListUIManager.items[itemListUIManager.number].GetComponent<ItemInformation>();
@@ -94,13 +96,11 @@ public class ChoiceUIManager : MonoBehaviour
                     number = 0;
                     button[1].transform.Find("Background").GetComponent<Image>().color = new Color(1, 1, 1, 0);
                     button[1].transform.Find("Text").GetComponent<Text>().color = new Color(1, 1, 1, 1);
-                    this.gameObject.SetActive(false);
                 }
                 else if (OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger))
                 {
                     if (number == 1 && quantity > 0)
                     {
-                        transition[1].SetActive(true);
                         transition[1].GetComponent<ResultUIManager>().flag = true;
                         this.flag = false;
                         description.choiceFlag = false;
@@ -111,6 +111,10 @@ public class ChoiceUIManager : MonoBehaviour
                     }
                 }
             }
+        }
+        else
+        {
+            choiceCanvas.alpha = 0f;
         }
     }
 }

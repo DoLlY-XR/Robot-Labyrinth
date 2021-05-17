@@ -50,7 +50,7 @@ public class SpecialBeamAttack : MonoBehaviour
                     var enemy = obj.GetComponent<EnemyController>();
                     if (enemy.GetState() != EnemyController.EnemyState.Dead)
                     {
-                        enemy.TakeDamage((float)attackPower);
+                        enemy.TakeDamage((float)attackPower, this.transform.root);
                     }
                 }
             }

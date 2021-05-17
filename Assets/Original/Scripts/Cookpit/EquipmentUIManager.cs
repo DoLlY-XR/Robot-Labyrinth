@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-
 public class EquipmentUIManager : MonoBehaviour
 {
     public GameObject[] button;
@@ -27,7 +26,7 @@ public class EquipmentUIManager : MonoBehaviour
     void Update()
     {
         Debug.Log("EquipmentUIManagerのflag = " + flag);
-        if (flag && this.gameObject.activeSelf)
+        if (flag)
         {
             transitionTime += Time.deltaTime;
             var partsList = transition[1].GetComponent<PartsListUIManager>();

@@ -12,10 +12,14 @@ public class ResultUIManager : MonoBehaviour
     public Text resultText;
     public GameObject[] transition;
     public DescriptionUIManager descriptionField;
+    public SoundManager console;
+    public ActivityLogUIManager activityLogPanel;
+    public GameObject logPrefab;
 
     [NonSerialized]
     public bool flag = false;               //このスクリプトを動かすフラグ
 
+    private CanvasGroup resultCanvas;
     private MyStatus myStatus;
     private ItemListUIManager itemListUIManager;
     private ItemInformation itemInfo;
@@ -28,6 +32,7 @@ public class ResultUIManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        resultCanvas = GetComponent<CanvasGroup>();
         myStatus = player.GetComponent<MyStatus>();
     }
 
@@ -38,9 +43,14 @@ public class ResultUIManager : MonoBehaviour
         {
             transitionTime += Time.deltaTime;
             count++;
+            resultCanvas.alpha = 1f;
 
-            itemListUIManager = transition[1].GetComponent<ItemListUIManager>();
-            itemInfo = itemListUIManager.items[itemListUIManager.number].GetComponent<ItemInformation>();
+            if (count == 1)
+            {
+                itemListUIManager = transition[1].GetComponent<ItemListUIManager>();
+                itemInfo = itemListUIManager.items[itemListUIManager.number].GetComponent<ItemInformation>();
+            }
+            
             if (itemInfo.Item.upgradeItem != null)
             {
                 upgradeItemInfo = itemInfo.Item.upgradeItem.GetComponent<ItemInformation>();
@@ -57,8 +67,14 @@ public class ResultUIManager : MonoBehaviour
 
                 if (count == 1)
                 {
+                    console.Decision();
+
                     itemInfo.ItemQuantity -= choice.quantity * itemInfo.Item.upgradeQuantity;
-                    upgradeItemInfo.ItemQuantity += choice.quantity;
+                    itemListUIManager.AddItem(upgradeItemInfo.Item.itemType, choice.quantity);
+
+                    logPrefab.transform.GetChild(0).GetComponent<Text>().text = itemInfo.Item.itemName + "×" + choice.quantity * itemInfo.Item.upgradeQuantity +
+                        "を" + upgradeItemInfo.Item.itemName + "× " + choice.quantity + "に変換しました。";
+                    activityLogPanel.AddLog(logPrefab);
                 }
             }
             else if (descriptionField.number == 1)
@@ -69,8 +85,13 @@ public class ResultUIManager : MonoBehaviour
                     {
                         if (count == 1)
                         {
+                            console.Recovering();
+
                             myStatus.EnergyAmount = myStatus.MaxEnergyAmount;
                             itemInfo.ItemQuantity--;
+
+                            logPrefab.transform.GetChild(0).GetComponent<Text>().text = "エネルギーを補充しました。";
+                            activityLogPanel.AddLog(logPrefab);
                         }
                         resultText.text = "アイテムを使いました";
                         this.transform.Find("Quantity").GetComponent<Text>().text = "エネルギーを補充しました";
@@ -96,12 +117,17 @@ public class ResultUIManager : MonoBehaviour
                     {
                         if (count == 1)
                         {
+                            console.Recovering();
+
                             myStatus.Hp += (int)((float)myStatus.MaxHp * 0.2f);
                             if (myStatus.Hp > myStatus.MaxHp)
                             {
                                 myStatus.Hp = myStatus.MaxHp;
                             }
                             itemInfo.ItemQuantity--;
+
+                            logPrefab.transform.GetChild(0).GetComponent<Text>().text = "HPを20%回復しました。";
+                            activityLogPanel.AddLog(logPrefab);
                         }
                         resultText.text = "アイテムを使いました";
                         this.transform.Find("Quantity").GetComponent<Text>().text = "HPを20%回復しました";
@@ -121,12 +147,17 @@ public class ResultUIManager : MonoBehaviour
                     {
                         if (count == 1)
                         {
+                            console.Recovering();
+
                             myStatus.Hp += (int)((float)myStatus.MaxHp * 0.5f);
                             if (myStatus.Hp > myStatus.MaxHp)
                             {
                                 myStatus.Hp = myStatus.MaxHp;
                             }
                             itemInfo.ItemQuantity--;
+
+                            logPrefab.transform.GetChild(0).GetComponent<Text>().text = "HPを50%回復しました。";
+                            activityLogPanel.AddLog(logPrefab);
                         }
                         resultText.text = "アイテムを使いました";
                         this.transform.Find("Quantity").GetComponent<Text>().text = "HPを50%回復しました";
@@ -146,8 +177,13 @@ public class ResultUIManager : MonoBehaviour
                     {
                         if (count == 1)
                         {
+                            console.Recovering();
+
                             myStatus.Hp = myStatus.MaxHp;
                             itemInfo.ItemQuantity--;
+
+                            logPrefab.transform.GetChild(0).GetComponent<Text>().text = "HPを全回復しました。";
+                            activityLogPanel.AddLog(logPrefab);
                         }
                         resultText.text = "アイテムを使いました";
                         this.transform.Find("Quantity").GetComponent<Text>().text = "HPを全回復しました";
@@ -167,16 +203,19 @@ public class ResultUIManager : MonoBehaviour
             {
                 if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger) || OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger) || dTime > 3f)
                 {
-                    transition[1].GetComponent<ItemListUIManager>().flag = true;
                     this.flag = false;
+                    transition[0].GetComponent<ChoiceUIManager>().flag = false;
+                    transition[1].GetComponent<ItemListUIManager>().flag = true;
                     transitionTime = 0f;
                     dTime = 0f;
                     count = 0;
                     choice.quantity = 0;
-                    transition[0].SetActive(false);
-                    this.gameObject.SetActive(false);
                 }
             }
+        }
+        else
+        {
+            resultCanvas.alpha = 0f;
         }
     }
 }

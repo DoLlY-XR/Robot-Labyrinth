@@ -5,12 +5,12 @@ using UnityEngine;
 public class RotateDamageUI : MonoBehaviour
 {
     //ロボットのカメラ
-    public Transform robotCamera;
+    public GameObject robotCamera;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        robotCamera = GameObject.Find("RobotCamera");
     }
 
     // Update is called once per frame

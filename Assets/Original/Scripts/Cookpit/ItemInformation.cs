@@ -42,15 +42,6 @@ public class ItemInformation : MonoBehaviour
     void Update()
     {
         this.transform.Find("Name").GetComponent<Text>().text = itemInfo.itemName + "× " + itemInfo.quantity + " (最大数" + itemInfo.maxQuantity + ")";
-
-        if (this.itemInfo.quantity > 0)
-        {
-            this.gameObject.SetActive(true);
-        }
-        else
-        {
-            this.gameObject.SetActive(false);
-        }
     }
 
     public ItemInfo Item

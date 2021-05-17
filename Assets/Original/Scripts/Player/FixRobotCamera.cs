@@ -26,7 +26,12 @@ public class FixRobotCamera : MonoBehaviour
 
     protected virtual void LateUpdate()
     {
-        if (!myController.cookpit.flag)
+        if (myController.gameManager.gameStatus == GameManager.GameStatus.Over || myController.gameManager.gameStatus == GameManager.GameStatus.Clear)
+        {
+            return;
+        }
+
+        if (!myController.activeConsole.flag)
         {
             rotateY = myController.stickR.y;
 

@@ -49,12 +49,16 @@ public class ItemDrop : MonoBehaviour
                 }
                 Debug.Log("random2 = " + random2);
 
-                var sendParts = partsPrefab;
-                sendParts.GetComponent<PartsInformation>().Parts = new PartsInformation.PartsInfo(PartsInformation.PartsType.AttackParts, enemyStatus.Lv + plus);
+                if (enemyController.enemyType == EnemyController.EnemyType.Middle1)
+                {
+                    random = 16;
+                }
+                else if (enemyController.enemyType == EnemyController.EnemyType.Middle2)
+                {
+                    random = 18;
+                }
 
-                player.AddParts(sendParts);
-
-                /*if (random % 20 < 5)        //エネルギータンク
+                if (random % 20 < 5)        //エネルギータンク
                 {
                     player.AddItem(ItemInformation.ItemType.EnergyTank);
                 }
@@ -87,7 +91,7 @@ public class ItemDrop : MonoBehaviour
                     sendParts.GetComponent<PartsInformation>().Parts = new PartsInformation.PartsInfo(PartsInformation.PartsType.ShieldParts, enemyStatus.Lv + plus);
 
                     player.AddParts(sendParts);
-                }*/
+                }
             }
         }
     }

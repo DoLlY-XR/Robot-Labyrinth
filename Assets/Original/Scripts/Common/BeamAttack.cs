@@ -47,10 +47,10 @@ public class BeamAttack : MonoBehaviour
                 }
                 if (hitTag == HitTag.Enemy)
                 {
-                    var enemy = obj.GetComponent<EnemyController>();
+                    var enemy = obj.transform.root.GetComponent<EnemyController>();
                     if (enemy.GetState() != EnemyController.EnemyState.Dead)
                     {
-                        enemy.TakeDamage(attackPower);
+                        enemy.TakeDamage(attackPower, this.transform.root);
                     }
                 }
             }

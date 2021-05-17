@@ -30,7 +30,7 @@ public class DescriptionUIManager : MonoBehaviour
     void Update()
     {
         Debug.Log("DescriptionUIManagerのflag = " + flag);
-        if (flag && this.gameObject.activeSelf)
+        if (flag)
         {
             transitionTime += Time.deltaTime;
 
@@ -63,22 +63,24 @@ public class DescriptionUIManager : MonoBehaviour
                 }
                 else if (OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger))
                 {
+                    var itemListUIManager = transition[0].GetComponent<ItemListUIManager>();
+                    var itemInfo = itemListUIManager.items[itemListUIManager.number].GetComponent<ItemInformation>();
+
                     if (number == 0)
                     {
-                        transition[1].SetActive(true);
+                        if (itemInfo.Item.upgradeQuantity == 0)
+                        {
+                            return;
+                        }
                         transition[1].GetComponent<ChoiceUIManager>().flag = true;
                         choiceFlag = true;
                     }
                     else if (number == 1)
                     {
-                        var itemListUIManager = transition[0].GetComponent<ItemListUIManager>();
-                        var info = itemListUIManager.items[itemListUIManager.number].GetComponent<ItemInformation>();
-
-                        if (info.ItemQuantity == 0)
+                        if (itemInfo.ItemQuantity == 0)
                         {
                             return;
                         }
-                        transition[2].SetActive(true);
                         transition[2].GetComponent<ResultUIManager>().flag = true;
                     }
                     

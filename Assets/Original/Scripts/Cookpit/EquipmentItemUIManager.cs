@@ -9,33 +9,19 @@ using UnityEngine.EventSystems;
 public class EquipmentItemUIManager : MonoBehaviour
 {
     public GameObject[] button;
-
-    [SerializeField]
-    private ChoiceUIManager choicePanel;
-    [SerializeField]
-    private ResultUIManager resultPanel;
-    [SerializeField]
-    private ActiveDisplay cookpit;
+    public GameObject transition;
 
     [NonSerialized]
     public bool flag = false;           //このスクリプトを動かすフラグ
     [NonSerialized]
     public int number = 0;
 
-    private CanvasGroup equipmentItemCanvas;
-    private CanvasGroup choiceCanvas;
-    private CanvasGroup resultCanvas;
     private float transitionTime = 0f;
 
     // Start is called before the first frame update
     void Start()
     {
-        equipmentItemCanvas = GetComponent<CanvasGroup>();
-        equipmentItemCanvas.alpha = 0f;
-        choiceCanvas = choicePanel.gameObject.GetComponent<CanvasGroup>();
-        choiceCanvas.alpha = 0f;
-        resultCanvas = resultPanel.gameObject.GetComponent<CanvasGroup>();
-        resultCanvas.alpha = 0f;
+        
     }
 
     // Update is called once per frame
@@ -61,13 +47,9 @@ public class EquipmentItemUIManager : MonoBehaviour
             {
                 if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
                 {
+                    transition.GetComponent<ConsoleUIManager>().flag = true;
                     this.flag = false;
-                    cookpit.flag = false;
                     transitionTime = 0f;
-
-                    equipmentItemCanvas.alpha = 0f;
-                    choiceCanvas.alpha = 0f;
-                    resultCanvas.alpha = 0f;
                 }
                 else if (OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger))
                 {

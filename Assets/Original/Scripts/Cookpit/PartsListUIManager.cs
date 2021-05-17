@@ -12,6 +12,7 @@ public class PartsListUIManager : MonoBehaviour
     public Transform content;
     public ScrollRect scrollView;
     public GameObject transition;
+    public SoundManager console;
 
     [NonSerialized]
     public bool flag = false;               //このスクリプトを動かすフラグ
@@ -44,7 +45,7 @@ public class PartsListUIManager : MonoBehaviour
             }
         }
 
-        if (flag && this.gameObject.activeSelf)
+        if (flag)
         {
             transitionTime += Time.deltaTime;
             equipmentUIManager = transition.GetComponent<EquipmentUIManager>();
@@ -80,6 +81,7 @@ public class PartsListUIManager : MonoBehaviour
                     equipmentUIManager.flag = true;
                     this.flag = false;
                     transitionTime = 0f;
+                    console.Decision();
                 }
             }
         }

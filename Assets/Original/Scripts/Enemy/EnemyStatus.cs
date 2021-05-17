@@ -109,6 +109,7 @@ public class EnemyStatus : MonoBehaviour
     public int Lv
     {
         get { return lv; }
+        set { lv = value; }
     }
 
     public int AttackPower

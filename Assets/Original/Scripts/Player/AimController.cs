@@ -5,6 +5,12 @@ using UnityEngine.UI;
 
 public class AimController : MonoBehaviour
 {
+    //照準のImageコンポーネント
+    [SerializeField]
+    private Image aimImage;
+    //照準の各色
+    [SerializeField]
+    private Sprite[] aimSprite;
     //透明度を変更するキャンバス
     [SerializeField]
     private CanvasGroup canvas;
@@ -12,12 +18,16 @@ public class AimController : MonoBehaviour
     [SerializeField]
     private float fadeSpeed = 0.1f;
 
+    public GameManager gameManager;
+
+    private Animator animator;
     private MyStatus myStatus;
     private float alpha;                    //キャンバスの透明度
 
     // Start is called before the first frame update
     void Start()
     {
+        animator = GetComponent<Animator>();
         myStatus = GetComponent<MyStatus>();
 
         canvas.alpha = 0f;
@@ -27,7 +37,7 @@ public class AimController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (myStatus.Hp == 0)
+        if (myStatus.Hp == 0 || gameManager.gameStatus != GameManager.GameStatus.Progress)
         {
             canvas.alpha = 0f;
 
@@ -37,6 +47,15 @@ public class AimController : MonoBehaviour
         if (OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
         {
             StartFadeIn();
+
+            if (animator.GetCurrentAnimatorStateInfo(1).IsName("Reload") || myStatus.EnergyAmount == 0)
+            {
+                aimImage.sprite = aimSprite[0];
+            }
+            else
+            {
+                aimImage.sprite = aimSprite[1];
+            }
         }
         else
         {
