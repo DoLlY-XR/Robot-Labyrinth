@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     public float fadeSpeed = 0.01f;
     public ActivityLogUIManager activityLogPanel;
     public GameObject logPrefab;
+    public AudioSource audioSource;
 
     private SoundManager soundManager;
     private float deltaTime = 0f;
@@ -92,6 +93,7 @@ public class GameManager : MonoBehaviour
                 systemConsoleText[1].color = Color.black;
                 logPrefab.transform.GetChild(0).GetComponent<Text>().text = "システムを起動しました。";
                 activityLogPanel.AddLog(logPrefab);
+                audioSource.Play();
             }
 
         }
