@@ -59,22 +59,64 @@ public class ResultUIManager : MonoBehaviour
             
             if (descriptionField.number == 0)
             {
-                resultText.text = "変換が完了しました";
-                this.transform.Find("Quantity").GetComponent<Text>().text =
-                    itemInfo.Item.itemName + "× " + choice.quantity * itemInfo.Item.upgradeQuantity +
-                    "\n↓\n" +
-                    upgradeItemInfo.Item.itemName + "× " + choice.quantity;
-
                 if (count == 1)
                 {
-                    console.Decision();
+                    foreach (var item in itemListUIManager.items)
+                    {
+                        if (item.GetComponent<ItemInformation>().Item.itemType == upgradeItemInfo.Item.itemType)
+                        {
+                            if (item.GetComponent<ItemInformation>().Item.maxQuantity > item.GetComponent<ItemInformation>().Item.quantity)
+                            {
+                                console.Decision();
 
-                    itemInfo.ItemQuantity -= choice.quantity * itemInfo.Item.upgradeQuantity;
-                    itemListUIManager.AddItem(upgradeItemInfo.Item.itemType, choice.quantity);
+                                resultText.text = "変換が完了しました";
+                                this.transform.Find("Quantity").GetComponent<Text>().text =
+                                    itemInfo.Item.itemName + "× " + choice.quantity * itemInfo.Item.upgradeQuantity +
+                                    "\n↓\n" +
+                                    upgradeItemInfo.Item.itemName + "× " + choice.quantity;
+                                itemInfo.ItemQuantity -= choice.quantity * itemInfo.Item.upgradeQuantity;
 
-                    logPrefab.transform.GetChild(0).GetComponent<Text>().text = itemInfo.Item.itemName + "×" + choice.quantity * itemInfo.Item.upgradeQuantity +
-                        "を" + upgradeItemInfo.Item.itemName + "× " + choice.quantity + "に変換しました。";
-                    activityLogPanel.AddLog(logPrefab);
+                                itemListUIManager.AddItem(item, choice.quantity, true);
+                                logPrefab.transform.GetChild(0).GetComponent<Text>().text = itemInfo.Item.itemName + "×" + choice.quantity * itemInfo.Item.upgradeQuantity +
+                                    "を" + upgradeItemInfo.Item.itemName + "× " + choice.quantity + "に変換しました。";
+                                activityLogPanel.AddLog(logPrefab);
+                            }
+                            else
+                            {
+                                resultText.text = "変換に失敗しました";
+                                this.transform.Find("Quantity").GetComponent<Text>().text =
+                                    itemInfo.Item.itemName + "× " + choice.quantity * itemInfo.Item.upgradeQuantity +
+                                    "\n↓\n" +
+                                    upgradeItemInfo.Item.itemName + "× " + choice.quantity;
+
+                                logPrefab.transform.GetChild(0).GetComponent<Text>().text = "手持ちがいっぱいで変換できませんでした。";
+                                activityLogPanel.AddLog(logPrefab);
+                            }
+
+                            return;
+                        }
+                    }
+
+                    foreach (var item in itemListUIManager.itemPrefabList)
+                    {
+                        if (item.GetComponent<ItemInformation>().Item.itemType == upgradeItemInfo.Item.itemType)
+                        {
+                            console.Decision();
+
+                            resultText.text = "変換が完了しました";
+                            this.transform.Find("Quantity").GetComponent<Text>().text =
+                                itemInfo.Item.itemName + "× " + choice.quantity * itemInfo.Item.upgradeQuantity +
+                                "\n↓\n" +
+                                upgradeItemInfo.Item.itemName + "× " + choice.quantity;
+                            itemInfo.ItemQuantity -= choice.quantity * itemInfo.Item.upgradeQuantity;
+
+
+                            itemListUIManager.AddItem(item, choice.quantity, false);
+                            logPrefab.transform.GetChild(0).GetComponent<Text>().text = itemInfo.Item.itemName + "×" + choice.quantity * itemInfo.Item.upgradeQuantity +
+                                "を" + upgradeItemInfo.Item.itemName + "× " + choice.quantity + "に変換しました。";
+                            activityLogPanel.AddLog(logPrefab);
+                        }
+                    }
                 }
             }
             else if (descriptionField.number == 1)

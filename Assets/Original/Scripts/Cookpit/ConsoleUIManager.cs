@@ -68,6 +68,7 @@ public class ConsoleUIManager : MonoBehaviour
             {
                 if (OVRInput.GetDown(OVRInput.RawButton.RHandTrigger))
                 {
+                    this.flag = false;
                     activeConsole.flag = false;
                     activeConsole.openWindow = ActiveConsole.OpenWindow.Console;
                     transitionTime = 0f;

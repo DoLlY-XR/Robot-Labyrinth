@@ -19,6 +19,8 @@ public class ActiveConsole : MonoBehaviour
         ResultPanel
     }
 
+    public OpenWindow openWindow;
+
     [SerializeField]
     private ActivityLogUIManager activityLogPanel;
     [SerializeField]
@@ -40,8 +42,6 @@ public class ActiveConsole : MonoBehaviour
 
     [NonSerialized]
     public bool flag = false;
-    [NonSerialized]
-    public OpenWindow openWindow;
 
     private ConsoleUIManager consoleUIManager;
     private CanvasGroup activityLogCanvas;

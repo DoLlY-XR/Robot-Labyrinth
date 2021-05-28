@@ -5,6 +5,7 @@ using UnityEngine;
 public class ItemDrop : MonoBehaviour
 {
     public GameObject partsPrefab;
+    public GameObject[] itemPrefab;
 
     private EnemyController enemyController;
     private EnemyStatus enemyStatus;
@@ -60,23 +61,23 @@ public class ItemDrop : MonoBehaviour
 
                 if (random % 20 < 5)        //エネルギータンク
                 {
-                    player.AddItem(ItemInformation.ItemType.EnergyTank);
+                    player.AddItem(itemPrefab[0]);
                 }
                 else if (random % 20 < 8)   //高密度エネルギータンク
                 {
-                    player.AddItem(ItemInformation.ItemType.HighEnergyTank);
+                    player.AddItem(itemPrefab[1]);
                 }
                 else if (random % 20 < 13)  //修復パーツ(小)
                 {
-                    player.AddItem(ItemInformation.ItemType.SmallRepairParts);
+                    player.AddItem(itemPrefab[2]);
                 }
                 else if (random % 20 < 15)  //修復パーツ(中)
                 {
-                    player.AddItem(ItemInformation.ItemType.MediumRepairParts);
+                    player.AddItem(itemPrefab[3]);
                 }
                 else if (random % 20 < 16)  //修復パーツ(大)
                 {
-                    player.AddItem(ItemInformation.ItemType.HighRepairParts);
+                    player.AddItem(itemPrefab[4]);
                 }
                 else if (random % 20 < 18)  //火力パーツ
                 {

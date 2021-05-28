@@ -81,59 +81,61 @@ public class ItemHold : MonoBehaviour
         }
     }
 
-    public void AddItem(ItemInformation.ItemType itemType)
+    public void AddItem(GameObject newItem)
     {
-        string itemName = null;
+        var addItem = newItem.GetComponent<ItemInformation>();
+        var itemName = "";
 
-        if (itemType == ItemInformation.ItemType.EnergyTank)
+        if (addItem.Item.itemType == ItemInformation.ItemType.EnergyTank)
         {
             itemName = "エネルギータンク";
         }
-        else if (itemType == ItemInformation.ItemType.HighEnergyTank)
+        else if (addItem.Item.itemType == ItemInformation.ItemType.HighEnergyTank)
         {
             itemName = "高密度エネルギータンク";
         }
-        else if (itemType == ItemInformation.ItemType.SmallRepairParts)
+        else if (addItem.Item.itemType == ItemInformation.ItemType.SmallRepairParts)
         {
             itemName = "修復パーツ(小)";
         }
-        else if (itemType == ItemInformation.ItemType.MediumRepairParts)
+        else if (addItem.Item.itemType == ItemInformation.ItemType.MediumRepairParts)
         {
             itemName = "修復パーツ(中)";
         }
-        else if (itemType == ItemInformation.ItemType.HighRepairParts)
+        else if (addItem.Item.itemType == ItemInformation.ItemType.HighRepairParts)
         {
             itemName = "修復パーツ(大)";
         }
-        else if (itemType == ItemInformation.ItemType.key)
+        else if (addItem.Item.itemType == ItemInformation.ItemType.key)
         {
             itemName = "鍵";
         }
 
         foreach (GameObject item in items)
         {
-            if (item.GetComponent<ItemInformation>().Item.itemType == itemType)
+            if (item.GetComponent<ItemInformation>().Item.itemType == addItem.Item.itemType)
             {
                 if (item.GetComponent<ItemInformation>().Item.maxQuantity > item.GetComponent<ItemInformation>().Item.quantity)
                 {
-                    itemContent.AddItem(itemType, 1);
+                    itemContent.AddItem(newItem, 1, true);
                     logPrefab.transform.GetChild(0).GetComponent<Text>().text = itemName + "を獲得しました。";
                     activityLogPanel.AddLog(logPrefab);
-                    Debug.Log(itemType + "を獲得しました。");
+                    Debug.Log(itemName + "を獲得しました。");
                 }
                 else
                 {
                     logPrefab.transform.GetChild(0).GetComponent<Text>().text = itemName + "をドロップしましたが、手持ちがいっぱいで獲得できませんでした。";
                     activityLogPanel.AddLog(logPrefab);
-                    Debug.Log(itemType + "をドロップしましたが、手持ちがいっぱいで獲得できませんでした。");
+                    Debug.Log(itemName + "をドロップしましたが、手持ちがいっぱいで獲得できませんでした。");
                 }
 
                 return;
             }
         }
 
-        itemContent.AddItem(itemType, 1);
-
-        Debug.Log(itemType + "を獲得");
+        itemContent.AddItem(newItem, 1, false);
+        logPrefab.transform.GetChild(0).GetComponent<Text>().text = "新たに" + itemName + "を獲得しました。";
+        activityLogPanel.AddLog(logPrefab);
+        Debug.Log(itemName + "を獲得");
     }
 }

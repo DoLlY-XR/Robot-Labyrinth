@@ -40,10 +40,9 @@ public class ItemListUIManager : MonoBehaviour
         {
             if (items[i].GetComponent<ItemInformation>().ItemQuantity == 0)
             {
-                if (items[i].GetComponent<ItemInformation>().Item.itemType != ItemInformation.ItemType.EnergyTank && items[i].GetComponent<ItemInformation>().Item.itemType != ItemInformation.ItemType.HighEnergyTank)
-                {
-                    items.RemoveAt(i);
-                }
+                var destroyObj = items[i];
+                items.RemoveAt(i);
+                Destroy(destroyObj);
             }
         }
 
@@ -90,28 +89,21 @@ public class ItemListUIManager : MonoBehaviour
             }
         }
     }
-    public void AddItem(ItemInformation.ItemType itemType, int quantity)
+    public void AddItem(GameObject newItem, int quantity, bool itemFlag)
     {
-        bool itemFlag = false;
-
-        foreach (Transform child in content)
-        {
-            if (child.GetComponent<ItemInformation>().Item.itemType == itemType)
-            {
-                child.GetComponent<ItemInformation>().ItemQuantity += quantity;
-                itemFlag = true;
-            }
-        }
-
         if (!itemFlag)
         {
-            foreach (var itemPrefab in itemPrefabList)
+            GameObject addItem = Instantiate<GameObject>(newItem, content.transform);
+            addItem.GetComponent<ItemInformation>().ItemQuantity += quantity;
+            items.Add(addItem.gameObject);
+        }
+        else
+        {
+            foreach (var item in items)
             {
-                if (itemPrefab.GetComponent<ItemInformation>().Item.itemType == itemType)
+                if (item.GetComponent<ItemInformation>().Item.itemType == newItem.GetComponent<ItemInformation>().Item.itemType)
                 {
-                    GameObject addItem = Instantiate<GameObject>(itemPrefab, content.transform);
-                    addItem.GetComponent<ItemInformation>().ItemQuantity += quantity;
-                    items.Add(addItem.gameObject);
+                    item.GetComponent<ItemInformation>().ItemQuantity += quantity;
                 }
             }
         }

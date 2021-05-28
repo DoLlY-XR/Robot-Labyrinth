@@ -34,12 +34,6 @@ public class MyStatus : MonoBehaviour
     //装備パーツの情報
     [SerializeField]
     private EquipmentParts equipmentParts;
-    //エネルギータンクの情報
-    [SerializeField]
-    private ItemInformation energyTank;
-    //高密度エネルギータンクの情報
-    [SerializeField]
-    private ItemInformation highEnergyTank;
     //ItemListUIManagerコンポーネント
     [SerializeField]
     private ItemListUIManager ItemListField;
@@ -62,8 +56,17 @@ public class MyStatus : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        energyTankQuantity = energyTank.Item.quantity;
-        highEnergyTankQuantity = highEnergyTank.Item.quantity;
+        foreach (var item in ItemListField.items)
+        {
+            if (item.GetComponent<ItemInformation>().Item.itemType == ItemInformation.ItemType.EnergyTank)
+            {
+                energyTankQuantity = item.GetComponent<ItemInformation>().ItemQuantity;
+            }
+            else if (item.GetComponent<ItemInformation>().Item.itemType == ItemInformation.ItemType.HighEnergyTank)
+            {
+                highEnergyTankQuantity = item.GetComponent<ItemInformation>().ItemQuantity;
+            }
+        }
 
         if (energyTankQuantity == 0 && energyAmount == 0)
         {
@@ -76,7 +79,7 @@ public class MyStatus : MonoBehaviour
 
             logPrefab.transform.GetChild(0).GetComponent<Text>().text = "HPを削ってエネルギータンクを生成しました。";
             ActivityLogPanel.AddLog(logPrefab);
-            ItemListField.AddItem(ItemInformation.ItemType.EnergyTank, 10);
+            ItemListField.AddItem(ItemListField.itemPrefabList[0], 10, false);
         }
 
         //　ダメージなければ何もしない

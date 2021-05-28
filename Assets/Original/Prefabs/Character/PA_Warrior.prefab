@@ -881,6 +881,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   partsPrefab: {fileID: 5301020258292114761, guid: c81973d5f28a0984a8a08d7882674fc0,
     type: 3}
+  itemPrefab:
+  - {fileID: 7161128793586696757, guid: 2b5a636b2f1521b478428bf51ec6b159, type: 3}
+  - {fileID: 3501499230954050773, guid: cf3babc03df25de41935dadea9305c40, type: 3}
+  - {fileID: 9163455594414598324, guid: b94ddc83ad06d7549944be4ed355376e, type: 3}
+  - {fileID: 117395467844459954, guid: c1b6e40cd364b384bb8f7022fb5002c2, type: 3}
+  - {fileID: 60536915412611845, guid: 5a515a5754f39284bbff93b005ab9c4f, type: 3}
+  - {fileID: 500303819347320976, guid: 494bce81ece90a345a3dd6906693a4a2, type: 3}
 --- !u!82 &418801249486941426
 AudioSource:
   m_ObjectHideFlags: 0
